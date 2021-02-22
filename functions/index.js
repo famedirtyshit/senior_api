@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 require('dotenv').config()
 const postLostCatRouter = require(`./route/PostLostCatRouter`);
+const searchLostCatRouter = require(`./route/SearchLostCatRouter`);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -13,6 +14,7 @@ app.get(`/`,(req,res)=>{
 
 app.use(`/postLostCat`,postLostCatRouter);
 
+app.use(`/searchLostCat`,searchLostCatRouter);
 
-app.listen(8000);
+// app.listen(8000);
 exports.catusService = functions.https.onRequest(app);
