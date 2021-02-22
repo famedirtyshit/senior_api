@@ -16,5 +16,6 @@ app.use(`/postLostCat`,postLostCatRouter);
 
 app.use(`/searchLostCat`,searchLostCatRouter);
 
-// app.listen(8000);
-exports.catusService = functions.https.onRequest(app);
+app.listen(8000);
+const builderFunction = functions.region('asia-east2').https;
+exports.catusService = builderFunction.onRequest(app);
