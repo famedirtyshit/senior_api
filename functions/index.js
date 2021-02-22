@@ -13,4 +13,4 @@ app.get(`/`,(req,res)=>{
 
 
 app.listen(8000);
-exports.helloWorld = functions.https.onRequest(app);
+exports.catusService = functions.https.onRequest(app);
