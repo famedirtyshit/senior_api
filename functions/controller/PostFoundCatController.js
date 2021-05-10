@@ -1,14 +1,14 @@
-const { postLostCatModel } = require(`../model/PostLostCat`);
+const { postFoundCatModel } = require(`../model/PostFoundCat`);
 const connectDB = require(`../config/ConnectDB`);
 const firebase = require('firebase/app');
 require("firebase/storage");
 
-const postLostCat = async (req, res) => {
+const postFoundCat = async (req, res) => {
         try {
                 connectDB();
                 const payload = req.body
                 if (payload.district && payload.date) {
-                        const newPostLostCat = new postLostCatModel({
+                        const newPostFoundCat = new postFoundCatModel({
                                 district: payload.district,
                                 date: payload.date,
                                 sex: payload.sex,
@@ -20,16 +20,16 @@ const postLostCat = async (req, res) => {
                                 let firebaseStorage = firebase.storage();
                                 let ref = firebaseStorage.ref();
                                 for (let i = 0; i < fileUpload.length; i++) {
-                                        let fileRef = ref.child('lost/' + newPostLostCat._id + '/' + fileUpload[i].originalname)
+                                        let fileRef = ref.child('found/' + newPostFoundCat._id + '/' + fileUpload[i].originalname)
                                         await fileRef.put(fileUpload[i].buffer).then(async (res) => {
                                                let url = await res.ref.getDownloadURL();
-                                               newPostLostCat.urls.push({url : url})
+                                               newPostFoundCat.urls.push({url : url})
                                         }).catch(e => {
                                                 res.status(500).json({ result: false, msg: 'upload picture fail ' + e });
                                         });
                                 }
                         }
-                        newPostLostCat.save()
+                        newPostFoundCat.save()
                                 .then(response => {
                                         res.status(201).json({ result: true, msg: response })
                                 })
@@ -48,4 +48,4 @@ const postLostCat = async (req, res) => {
 
 
 
-module.exports = { postLostCat };
+module.exports = { postFoundCat };

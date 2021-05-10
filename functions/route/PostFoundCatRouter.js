@@ -1,11 +1,11 @@
 const express = require(`express`);
 const router = express.Router();
-const postLostCatController = require(`../controller/PostLostCatController`);
+const postFoundCatController = require(`../controller/PostFoundCatController`);
 let multer  = require('multer')
 let storage = multer.memoryStorage()
 let upload = multer({ storage: storage },{ dest: '.' })
 
-router.post(`/post`,upload.any(),postLostCatController.postLostCat);
+router.post(`/post`,upload.any(),postFoundCatController.postFoundCat);
 
 
 

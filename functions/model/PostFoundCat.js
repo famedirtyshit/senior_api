@@ -1,7 +1,7 @@
 const mongoose = require(`mongoose`);
 const schema = mongoose.Schema;
 
-const postLostCatSchema = new schema({
+const postFoundCatSchema = new schema({
     district : String,
     date : Date,
     sex : Boolean,
@@ -11,6 +11,6 @@ const postLostCatSchema = new schema({
 })
 
                                 //ชื่อ collection
-const postLostCatModel = mongoose.model('post_lost_cat', postLostCatSchema);
+const postFoundCatModel = mongoose.model('post_found_cat', postFoundCatSchema);
 
-module.exports = { postLostCatModel };
+module.exports = { postFoundCatModel };

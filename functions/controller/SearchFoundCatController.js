@@ -1,12 +1,12 @@
-const { postLostCatModel } = require(`../model/PostLostCat`);
+const { postFoundCatModel } = require(`../model/PostFoundCat`);
 const connectDB = require(`../config/ConnectDB`);
 
 
-const searchLostCat = (req, res) => {
+const searchFoundCat = (req, res) => {
         try {
                 connectDB();
                 let searchResult;
-                let query = postLostCatModel.find()
+                let query = postFoundCatModel.find()
                 if(req.params.district){
                         query.where('district').equals(req.params.district)
                 }else{
@@ -34,4 +34,4 @@ const searchLostCat = (req, res) => {
 
 
 
-module.exports = { searchLostCat };
+module.exports = { searchFoundCat };
