@@ -24,7 +24,7 @@ const postFoundCat = async (req, res) => {
                                 collar: payload.collar,
                                 description: payload.description,
                         });
-                        if (filePayload.length > 1) {
+                        if (filePayload.length > 0) {
                                 let firebaseStorage = firebase.storage();
                                 let ref = firebaseStorage.ref();
                                 if (filePayload.length < 6) {
