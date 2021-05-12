@@ -10,7 +10,7 @@ const postLostCat = async (req, res) => {
                 const payload = {};
                 let filePayload = [];
                 for (let i = 0; i < req.formData.length; i++) {
-                        if (req.formData[i].name != undefined) {
+                        if (req.formData[i].type == undefined) {
                                 payload[req.formData[i].name] = req.formData[i].data.toString('utf-8');
                         } else {
                                 filePayload.push(req.formData[i]);
