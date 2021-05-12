@@ -7,7 +7,15 @@ fs = require('fs');
 const postLostCat = async (req, res) => {
         try {
                 connectDB();
-                const payload = req.body
+                const payload = {};
+                let filePayload = [];
+                for (let i = 0; i < req.formData.length; i++) {
+                        if (req.formData[i].name != undefined) {
+                                payload[req.formData[i].name] = req.formData[i].data.toString('utf-8');
+                        } else {
+                                filePayload.push(req.formData[i]);
+                        }
+                }
                 if (payload.district && payload.date) {
                         const newPostLostCat = new postLostCatModel({
                                 district: payload.district,
@@ -16,20 +24,17 @@ const postLostCat = async (req, res) => {
                                 collar: payload.collar,
                                 description: payload.description,
                         });
-                        let filePayload = req.files.null;
-                        if (filePayload != undefined) {
+                        if (filePayload.length > 1) {
                                 let firebaseStorage = firebase.storage();
                                 let ref = firebaseStorage.ref();
-                                if (filePayload.length == undefined) {
-                                        let fileRef = ref.child('lost/' + newPostLostCat._id + '/' + filePayload.originalFilename)
-                                        fs.readFile(filePayload.path, async function (err, data) {
-                                                if (err) {
-                                                        res.status(500).json({ result: false, msg: 'upload picture fail ' + err });
-                                                } else {
-                                                        try {
-                                                                let putRes = await fileRef.put(data)
-                                                                let url = await putRes.ref.getDownloadURL();
-                                                                newPostLostCat.urls.push({ url: url })
+                                if (filePayload.length < 6) {
+                                        for (let i = 0; i < filePayload.length; i++) {
+                                                let fileRef = ref.child('lost/' + newPostLostCat._id + '/' + filePayload[i].filename)
+                                                try {
+                                                        let putRes = await fileRef.put(filePayload[i].data)
+                                                        let url = await putRes.ref.getDownloadURL();
+                                                        newPostLostCat.urls.push({ url: url })
+                                                        if (i == filePayload.length - 1) {
                                                                 newPostLostCat.save()
                                                                         .then(response => {
                                                                                 res.status(201).json({ result: true, msg: response })
@@ -37,45 +42,14 @@ const postLostCat = async (req, res) => {
                                                                         .catch(err => {
                                                                                 res.status(500).json({ result: false, msg: 'post fail ' + err.message });
                                                                         })
-                                                        } catch (e) {
-                                                                res.status(500).json({ result: false, msg: 'upload picture fail ' + e });
                                                         }
+                                                } catch (e) {
+                                                        res.status(500).json({ result: false, msg: 'upload picture fail ' + e });
                                                 }
-                                        });
-                                } else {
-                                        if (filePayload.length < 6) {
-                                                console.log('>1')
-                                                for (let i = 0; i < filePayload.length; i++) {
-                                                        let fileRef = ref.child('lost/' + newPostLostCat._id + '/' + filePayload[i].originalFilename)
-                                                        fs.readFile(filePayload[i].path, async function (err, data) {
-                                                                if (err) {
-                                                                        res.status(500).json({ result: false, msg: 'upload picture fail ' + err });
-                                                                }
-                                                                else {
-                                                                        try {
-                                                                                let putRes = await fileRef.put(data)
-                                                                                let url = await putRes.ref.getDownloadURL();
-                                                                                newPostLostCat.urls.push({ url: url })
-                                                                                if (i == filePayload.length - 1) {
-                                                                                        newPostLostCat.save()
-                                                                                                .then(response => {
-                                                                                                        res.status(201).json({ result: true, msg: response })
-                                                                                                })
-                                                                                                .catch(err => {
-                                                                                                        res.status(500).json({ result: false, msg: 'post fail ' + err.message });
-                                                                                                })
-                                                                                }
-                                                                        } catch (e) {
-                                                                                res.status(500).json({ result: false, msg: 'upload picture fail ' + e });
-                                                                        }
-                                                                }
-                                                        });
-                                                }
-                                        } else {
-                                                res.status(500).json({ result: false, msg: 'number of uploaded picture exceed ' });
                                         }
+                                } else {
+                                        res.status(500).json({ result: false, msg: 'number of uploaded picture exceed ' });
                                 }
-
                         } else {
                                 newPostLostCat.save()
                                         .then(response => {

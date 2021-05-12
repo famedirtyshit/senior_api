@@ -6,7 +6,7 @@ const cors = require('cors')
 global.XMLHttpRequest = require("xhr2");
 const firebaseInit = require('./config/InitFirebase');
 require("firebase/analytics");
-const formData = require("express-form-data");
+
 const postLostCatRouter = require(`./route/PostLostCatRouter`);
 const searchLostCatRouter = require(`./route/SearchLostCatRouter`);
 const postFoundCatRouter = require(`./route/PostFoundCatRouter`);
@@ -17,10 +17,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 firebaseInit();
-
-app.use(formData.parse());
-app.use(formData.format());
-app.use(formData.union());
 
 app.get(`/`,(req,res)=>{
     res.send(`Hello World from Express.js`);
@@ -34,6 +30,6 @@ app.use(`/postFoundCat`,postFoundCatRouter);
 
 app.use(`/searchFoundCat`,searchFoundCatRouter);
 
-app.listen(8000);
+// app.listen(8000);
 const builderFunction = functions.region('asia-east2').https;
 exports.catusService = builderFunction.onRequest(app);
