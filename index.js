@@ -1,4 +1,3 @@
-const functions = require("firebase-functions");
 const express = require('express');
 const app = express();
 require('dotenv').config()
@@ -30,6 +29,7 @@ app.use(`/postFoundCat`,postFoundCatRouter);
 
 app.use(`/searchFoundCat`,searchFoundCatRouter);
 
-// app.listen(8000);
-const builderFunction = functions.region('asia-east2').https;
-exports.catusService = builderFunction.onRequest(app);
+app.listen(8000);
+// const builderFunction = functions.region('asia-east2').https;
+// exports.catusService = builderFunction.onRequest(app);
+exports.catusService = app;

@@ -1,0 +1,22 @@
+steps:
+  - name: gcr.io/cloud-builders/npm
+    args:
+      - install
+    dir: ./
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - functions
+      - deploy
+      - myService
+      - '--trigger-http'
+      - '--runtime'
+      - nodejs14
+      - '--entry-point'
+      - catusService
+      - '--region'
+      - asia-southeast1
+      - '--security-level'
+      - secure-optional
+    dir: ./
+
+#gcloud functions deploy expressCloud --allow-unauthenticated --source https://source.developers.google.com/projects/my-nuxt-cloud-run/repos/github_famedirtyshit_express-cloud/moveable-aliases/master/paths// --runtime nodejs14 --trigger-http --entry-point index
