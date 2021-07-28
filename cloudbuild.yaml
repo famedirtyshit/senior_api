@@ -7,7 +7,7 @@ steps:
     args:
       - functions
       - deploy
-      - myService
+      - CatUsCloudFunction
       - '--trigger-http'
       - '--runtime'
       - nodejs14
