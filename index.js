@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: false }));
 firebaseInit();
 
 app.get(`/`,(req,res)=>{
-    res.send(`Hello World from Cloud Express.js await`);
+    res.send(`Hello World from Cloud Express.js async await`);
 })
 
 app.use(`/postLostCat`,postLostCatRouter);
