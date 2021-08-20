@@ -21,14 +21,14 @@ const searchLostCat = (req, res) => {
                 query.exec()
                         .then(response => {
                                 searchResult = response
-                                res.status(200).json({ result: true, msg: `search success`, searchResult });
+                                res.status(200).json({ result: true, msg: `search success`, searchResult,case: 'a' });
                         })
                         .catch(err => {
-                                res.status(500).json({ result: false, msg: 'search fail ' + err.message });
+                                res.status(500).json({ result: false, msg: 'search fail ' + err.message,case: 'b' });
                         });
 
         } catch (e) {
-                res.status(500).json({ result: false, msg: `some error has occur` });
+                res.status(500).json({ result: false, msg: `some error has occur`,case: 'c' });
         }
 }
 
