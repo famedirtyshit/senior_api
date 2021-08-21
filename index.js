@@ -15,13 +15,19 @@ app.use(cors({
     origin: 'https://dev-next-cloud-run-4p3fhebxra-as.a.run.app',
     optionsSuccessStatus: 200
 }));
+// app.use((req, res, next) => {
+//     res.header('Access-Control-Allow-Origin', 'http://localhost:3001')
+//     res.header('Access-Control-Allow-Methods','POST, GET, PUT, PATCH, DELETE, OPTIONS')
+//     res.header('Access-Control-Allow-Headers','Content-Type, Option, Authorization')
+//     next();
+//   })
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 firebaseInit();
 
 app.get(`/`, (req, res) => {
-    res.send(`Hello World from Cloud Express.js async await`);
+    res.send(`Hello World from Cloud Express.js`);
 })
 
 app.use(`/postLostCat`, postLostCatRouter);
