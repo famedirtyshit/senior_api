@@ -11,23 +11,26 @@ const searchLostCatRouter = require(`./route/SearchLostCatRouter`);
 const postFoundCatRouter = require(`./route/PostFoundCatRouter`);
 const searchFoundCatRouter = require(`./route/SearchFoundCatRouter`);
 
-app.use(cors());
+app.use(cors({
+    origin: 'https://dev-next-cloud-run-4p3fhebxra-as.a.run.app',
+    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 firebaseInit();
 
-app.get(`/`,(req,res)=>{
+app.get(`/`, (req, res) => {
     res.send(`Hello World from Cloud Express.js async await`);
 })
 
-app.use(`/postLostCat`,postLostCatRouter);
+app.use(`/postLostCat`, postLostCatRouter);
 
-app.use(`/searchLostCat`,searchLostCatRouter);
+app.use(`/searchLostCat`, searchLostCatRouter);
 
-app.use(`/postFoundCat`,postFoundCatRouter);
+app.use(`/postFoundCat`, postFoundCatRouter);
 
-app.use(`/searchFoundCat`,searchFoundCatRouter);
+app.use(`/searchFoundCat`, searchFoundCatRouter);
 
 // app.post(`/testLocation`,(req,res) => {
 //     connectDB();
@@ -64,14 +67,14 @@ app.use(`/searchFoundCat`,searchFoundCatRouter);
 //        })
 
 //        query.where('name').equals(true);
-       
+
 //        query.exec().then(response => {
 //         res.status(200).send(response);
 //         })
 //         .catch(err => {
 //             res.status(500).send(response);
 //         });
-       
+
 // })
 
 app.listen(8000);
