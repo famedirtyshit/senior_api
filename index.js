@@ -27,7 +27,7 @@ app.use(express.urlencoded({ extended: false }));
 firebaseInit();
 
 app.get(`/`, (req, res) => {
-    res.send(`Hello World from Cloud Express.js edit yaml`);
+    res.send(`Hello World from Cloud Express.js`);
 })
 
 app.use(`/postLostCat`, postLostCatRouter);
