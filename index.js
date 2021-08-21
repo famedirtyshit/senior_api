@@ -13,7 +13,7 @@ const searchFoundCatRouter = require(`./route/SearchFoundCatRouter`);
 
 app.use(cors({
     origin: 'https://dev-next-cloud-run-4p3fhebxra-as.a.run.app',
-    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+    optionsSuccessStatus: 200
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
