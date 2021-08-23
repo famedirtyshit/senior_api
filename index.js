@@ -4,6 +4,7 @@ require('dotenv').config()
 const cors = require('cors')
 global.XMLHttpRequest = require("xhr2");
 const firebaseInit = require('./config/InitFirebase');
+const mongoose = require(`mongoose`);
 require("firebase/analytics");
 
 const postLostCatRouter = require(`./route/PostLostCatRouter`);
@@ -15,12 +16,7 @@ app.use(cors({
     origin: 'https://dev-next-cloud-run-4p3fhebxra-as.a.run.app',
     optionsSuccessStatus: 200
 }));
-// app.use((req, res, next) => {
-//     res.header('Access-Control-Allow-Origin', 'http://localhost:3001')
-//     res.header('Access-Control-Allow-Methods','POST, GET, PUT, PATCH, DELETE, OPTIONS')
-//     res.header('Access-Control-Allow-Headers','Content-Type, Option, Authorization')
-//     next();
-//   })
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -37,6 +33,19 @@ app.use(`/searchLostCat`, searchLostCatRouter);
 app.use(`/postFoundCat`, postFoundCatRouter);
 
 app.use(`/searchFoundCat`, searchFoundCatRouter);
+
+app.all('*', (req, res, next) => {
+    const err = new Error(`path ${req.path} not found.`)
+    err.statusCode = 404;
+    next(err);
+})
+
+process.on('SIGINT', function () {
+    mongoose.connection.close(function () {
+        console.log('Mongoose disconnected on app termination');
+        process.exit(0);
+    });
+});
 
 // app.post(`/testLocation`,(req,res) => {
 //     connectDB();
@@ -84,6 +93,14 @@ app.use(`/searchFoundCat`, searchFoundCatRouter);
 // })
 
 app.listen(8000);
-// const builderFunction = functions.region('asia-east2').https;
-// exports.catusService = builderFunction.onRequest(app);
+
+app.use((err, req, res, next) => {
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode).json({
+        result: false,
+        message: err.message,
+        stack: err.stack
+    });
+});
+
 exports.catusService = app;
