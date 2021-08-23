@@ -2,7 +2,8 @@ const mongoose = require(`mongoose`);
 const schema = mongoose.Schema;
 
 const postFoundCatSchema = new schema({
-    district : String,
+    lat:Number,
+    lng:Number,
     date : Date,
     sex : Boolean,
     collar : Boolean,
