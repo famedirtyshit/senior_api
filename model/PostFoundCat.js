@@ -1,6 +1,6 @@
 const mongoose = require(`mongoose`);
 const schema = mongoose.Schema;
-const geolib = require('geolib');
+const {checkGeolocation} = require("./util/geolocation");
 
 const postFoundCatSchema = new schema({
     postType: { type: String, default: 'found' },
@@ -14,12 +14,7 @@ const postFoundCatSchema = new schema({
 
 postFoundCatSchema.index({location: '2dsphere'})
 
-postFoundCatSchema.methods.checkDistance = (srcLat, srcLng, desLat, desLng) => {
-    return geolib.getDistance(
-        { latitude: srcLat, longitude: srcLng },
-        { latitude: desLat, longitude: desLng }
-    );
-}
+postFoundCatSchema.methods.checkDistance = checkGeolocation;
 
 //ชื่อ collection
 const postFoundCatModel = mongoose.model('post_found_cat', postFoundCatSchema);
