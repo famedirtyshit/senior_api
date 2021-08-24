@@ -1,7 +1,7 @@
 const { postFoundCatModel } = require(`../model/PostFoundCat`);
 const { postLostCatModel } = require(`../model/PostLostCat`);
 const connectDB = require(`../config/ConnectDB`);
-// const { sortByGeo } = require(`../model/util/Geolocation`);
+const { sortByGeo } = require(`../model/util/Geolocation`);
 
 
 const searchAll = async (req, res, next) => {
@@ -59,18 +59,18 @@ const searchAll = async (req, res, next) => {
             queryLost.exec(),
             queryFound.exec()
         ])
+        let result = [];
+        for(let i = 0; i < lostResult.length; i++) {
+            let postObj = {distance: null,post:lostResult[i]};
+            postObj.distance = lostResult[i].checkDistance(req.params.lat,req.params.lng,lostResult[i].location.coordinates[1],lostResult[i].location.coordinates[0]);
+            result.push(postObj);
+        }
+        for(let i = 0; i < foundResult.length; i++) {
+            let postObj = {distance: null,post:foundResult[i]};
+            postObj.distance = foundResult[i].checkDistance(req.params.lat,req.params.lng,foundResult[i].location.coordinates[1],foundResult[i].location.coordinates[0]);
+            result.push(postObj);
+        }
         res.json({lost:lostResult,found:foundResult});
-        // let result = [];
-        // for(let i = 0; i < lostResult.length; i++) {
-        //     let postObj = {distance: null,post:lostResult[i]};
-        //     postObj.distance = lostResult[i].checkDistance(req.params.lat,req.params.lng,lostResult[i].location.coordinates[1],lostResult[i].location.coordinates[0]);
-        //     result.push(postObj);
-        // }
-        // for(let i = 0; i < foundResult.length; i++) {
-        //     let postObj = {distance: null,post:foundResult[i]};
-        //     postObj.distance = foundResult[i].checkDistance(req.params.lat,req.params.lng,foundResult[i].location.coordinates[1],foundResult[i].location.coordinates[0]);
-        //     result.push(postObj);
-        // }
         // result.sort(sortByGeo);
         // res.json({ result: true, msg: `search success`, searchResult: result });
     } catch (err) {
