@@ -1,7 +1,7 @@
 const { postFoundCatModel } = require(`../model/PostFoundCat`);
 const { postLostCatModel } = require(`../model/PostLostCat`);
 const connectDB = require(`../config/ConnectDB`);
-const { checkGeolocation, sortByGeo } = require(`../model/util/Geolocation`);
+const { sortByGeo } = require(`../model/util/Geolocation`);
 
 const sortByDistance = (a, b) => {
     if (a.distance < b.distance) {
