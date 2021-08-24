@@ -80,9 +80,9 @@ const searchAll = async (req, res, next) => {
             postObj.distance = foundResult[i].checkDistance(req.params.lat,req.params.lng,foundResult[i].location.coordinates[1],foundResult[i].location.coordinates[0]);
             result.push(postObj);
         }
-        res.json({lost:lostResult,found:foundResult});
-        // result.sort(sortByGeo);
-        // res.json({ result: true, msg: `search success`, searchResult: result });
+        // res.json({lost:lostResult,found:foundResult});
+        result.sort(sortByGeo);
+        res.json({ result: true, msg: `search success`, searchResult: result });
     } catch (err) {
         console.log(err.message)
         e = new Error(err.body);
