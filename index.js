@@ -61,4 +61,6 @@ app.use((err, req, res, next) => {
     });
 });
 
-exports.catusService = app;
+exports.catusService = (req,res) => {
+    res.send('test scope')
+};
