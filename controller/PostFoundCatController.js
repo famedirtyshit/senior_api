@@ -19,8 +19,7 @@ const postFoundCat = async (req, res, next) => {
                 }
                 if (payload.lat && payload.date && payload.lng) {
                         const newPostFoundCat = new postFoundCatModel({
-                                lat: payload.lat,
-                                lng: payload.lng,
+                                location: { type: "Point", coordinates: [payload.lng, payload.lat] },
                                 date: payload.date,
                                 sex: payload.sex,
                                 collar: payload.collar,
