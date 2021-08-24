@@ -47,51 +47,6 @@ process.on('SIGINT', function () {
     });
 });
 
-// app.post(`/testLocation`,(req,res) => {
-//     connectDB();
-//     let message = new Message({
-//         name: true,
-//         location: {
-//             type: "Point",
-//             coordinates: [100.67747, 13.61863]
-//         }
-//     })
-//     message.save((err,msg) => {
-//         if(err) {
-//             res.status(500).send(msg);
-//             console.log(msg);
-//         }else{
-//             res.status(201).send(msg);
-//             console.log(msg);
-//         }
-//     })
-// });
-
-// app.get(`/getLocation`,(req,res) => {
-//     connectDB();
-//     let query = Message.find({
-//         location: {
-//          $near: {
-//           $maxDistance: 1000,
-//           $geometry: {
-//            type: "Point",
-//            coordinates: [100.67956, 13.62151]
-//           }
-//          }
-//         }
-//        })
-
-//        query.where('name').equals(true);
-
-//        query.exec().then(response => {
-//         res.status(200).send(response);
-//         })
-//         .catch(err => {
-//             res.status(500).send(response);
-//         });
-
-// })
-
 app.listen(8000);
 
 app.use((err, req, res, next) => {
