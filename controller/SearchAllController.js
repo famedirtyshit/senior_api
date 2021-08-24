@@ -1,8 +1,18 @@
 const { postFoundCatModel } = require(`../model/PostFoundCat`);
 const { postLostCatModel } = require(`../model/PostLostCat`);
 const connectDB = require(`../config/ConnectDB`);
-const { sortByGeo } = require(`../model/util/Geolocation`);
+// const { sortByGeo } = require(`../model/util/Geolocation`);
+const geolib = require('geolib');
 
+const sortByGeo = (a, b) => {
+    if (a.distance < b.distance) {
+        return -1;
+    }
+    if (a.distance > b.distance) {
+        return 1;
+    }
+    return 0;
+}
 
 const searchAll = async (req, res, next) => {
     try {
@@ -62,17 +72,17 @@ const searchAll = async (req, res, next) => {
         let result = [];
         for(let i = 0; i < lostResult.length; i++) {
             let postObj = {distance: null,post:lostResult[i]};
-            // postObj.distance = lostResult[i].checkDistance(req.params.lat,req.params.lng,lostResult[i].location.coordinates[1],lostResult[i].location.coordinates[0]);
+            postObj.distance = lostResult[i].checkDistance(req.params.lat,req.params.lng,lostResult[i].location.coordinates[1],lostResult[i].location.coordinates[0]);
             result.push(postObj);
         }
         for(let i = 0; i < foundResult.length; i++) {
             let postObj = {distance: null,post:foundResult[i]};
-            // postObj.distance = foundResult[i].checkDistance(req.params.lat,req.params.lng,foundResult[i].location.coordinates[1],foundResult[i].location.coordinates[0]);
+            postObj.distance = foundResult[i].checkDistance(req.params.lat,req.params.lng,foundResult[i].location.coordinates[1],foundResult[i].location.coordinates[0]);
             result.push(postObj);
         }
-        res.json({lost:lostResult,found:foundResult});
-        // result.sort(sortByGeo);
-        // res.json({ result: true, msg: `search success`, searchResult: result });
+        // res.json({lost:lostResult,found:foundResult});
+        result.sort(sortByGeo);
+        res.json({ result: true, msg: `search success`, searchResult: result });
     } catch (err) {
         console.log(err.message)
         e = new Error(err.body);
