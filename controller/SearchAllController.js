@@ -1,10 +1,9 @@
 const { postFoundCatModel } = require(`../model/PostFoundCat`);
 const { postLostCatModel } = require(`../model/PostLostCat`);
 const connectDB = require(`../config/ConnectDB`);
-// const { sortByGeo } = require(`../model/util/Geolocation`);
-// const geolib = require('geolib');
+const { checkGeolocation, sortByGeo } = require(`../model/util/Geolocation`);
 
-const sortByGeo = (a, b) => {
+const sortByDistance = (a, b) => {
     if (a.distance < b.distance) {
         return -1;
     }
@@ -80,8 +79,7 @@ const searchAll = async (req, res, next) => {
             postObj.distance = foundResult[i].checkDistance(req.params.lat,req.params.lng,foundResult[i].location.coordinates[1],foundResult[i].location.coordinates[0]);
             result.push(postObj);
         }
-        // res.json({lost:lostResult,found:foundResult});
-        result.sort(sortByGeo);
+        result.sort(sortByDistance);
         res.json({ result: true, msg: `search success`, searchResult: result });
     } catch (err) {
         console.log(err.message)
