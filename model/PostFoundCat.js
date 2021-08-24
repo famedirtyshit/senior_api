@@ -1,6 +1,6 @@
 const mongoose = require(`mongoose`);
 const schema = mongoose.Schema;
-// const {checkGeolocation} = require("./util/geolocation");
+const {checkGeolocation} = require("./util/geolocation");
 
 const postFoundCatSchema = new schema({
     postType: { type: String, default: 'found' },
@@ -14,7 +14,7 @@ const postFoundCatSchema = new schema({
 
 postFoundCatSchema.index({location: '2dsphere'})
 
-// postFoundCatSchema.methods.checkDistance = checkGeolocation;
+postFoundCatSchema.methods.checkDistance = checkGeolocation;
 
 //ชื่อ collection
 const postFoundCatModel = mongoose.model('post_found_cat', postFoundCatSchema);
