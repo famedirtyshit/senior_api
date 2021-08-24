@@ -71,7 +71,7 @@ const searchAll = async (req, res, next) => {
             result.push(postObj);
         }
         res.json({lost:lostResult,found:foundResult});
-        result.sort(sortByGeo);
+        // result.sort(sortByGeo);
         // res.json({ result: true, msg: `search success`, searchResult: result });
     } catch (err) {
         console.log(err.message)
