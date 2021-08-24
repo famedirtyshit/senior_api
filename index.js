@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: false }));
 firebaseInit();
 
 app.get(`/`, (req, res) => {
-    res.send(`Hello World .`);
+    res.send(`Hello World CatUs Service.`);
 })
 
 app.use(`/postLostCat`, postLostCatRouter);
