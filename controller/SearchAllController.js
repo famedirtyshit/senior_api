@@ -79,7 +79,7 @@ const searchAll = async (req, res, next) => {
             postObj.distance = foundResult[i].checkDistance(req.params.lat,req.params.lng,foundResult[i].location.coordinates[1],foundResult[i].location.coordinates[0]);
             result.push(postObj);
         }
-        result.sort(sortByDistance);
+        result.sort(sortByGeo);
         res.json({ result: true, msg: `search success`, searchResult: result });
     } catch (err) {
         console.log(err.message)
