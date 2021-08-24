@@ -3,16 +3,6 @@ const { postLostCatModel } = require(`../model/PostLostCat`);
 const connectDB = require(`../config/ConnectDB`);
 const { sortByGeo } = require(`../model/util/Geolocation`);
 
-const sortByDistance = (a, b) => {
-    if (a.distance < b.distance) {
-        return -1;
-    }
-    if (a.distance > b.distance) {
-        return 1;
-    }
-    return 0;
-}
-
 const searchAll = async (req, res, next) => {
     try {
         connectDB();
