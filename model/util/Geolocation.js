@@ -1,10 +1,10 @@
-const geolib = require('geolib');
+// const geolib = require('geolib');
 
 const checkGeolocation = (srcLat, srcLng, desLat, desLng) => {
-    return geolib.getDistance(
-        { latitude: srcLat, longitude: srcLng },
-        { latitude: desLat, longitude: desLng }
-    );
+    // return geolib.getDistance(
+    //     { latitude: srcLat, longitude: srcLng },
+    //     { latitude: desLat, longitude: desLng }
+    // );
 }
 
 const sortByGeo = (a, b) => {
