@@ -32,7 +32,7 @@ const postLostCat = async (req, res, next) => {
                                         for (let i = 0; i < filePayload.length; i++) {
                                                 let fileRef = ref.child('lost/' + newPostLostCat._id + '/' + filePayload[i].name)
                                                 try {
-                                                        let putRes = await fileRef.put(filePayload[i].data)
+                                                        let putRes = await fileRef.put(filePayload[i].data,{contentType: 'image/png'})
                                                         let url = await putRes.ref.getDownloadURL();
                                                         newPostLostCat.urls.push({ url: url })
                                                         if (i == filePayload.length - 1) {

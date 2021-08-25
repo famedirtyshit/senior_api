@@ -1,7 +1,7 @@
 const { postFoundCatModel } = require(`../model/PostFoundCat`);
 const { postLostCatModel } = require(`../model/PostLostCat`);
 const connectDB = require(`../config/ConnectDB`);
-const { sortByGeo } = require(`../model/util/Geolocation`);
+const { sortByGeo, sortByDate } = require(`../model/util/Geolocation`);
 
 const searchAll = async (req, res, next) => {
     try {
@@ -79,6 +79,59 @@ const searchAll = async (req, res, next) => {
     }
 }
 
+const searchAllNoMap = async (req, res, next) => {
+    try {
+        connectDB();
+        let queryFound = postFoundCatModel.find();
+        let queryLost = postLostCatModel.find();
+        let sexQuery = [];
+        if (req.params.male != 'false') {
+            sexQuery.push('true');
+        }
+        if (req.params.female != 'false') {
+            sexQuery.push('false');
+        }
+        if (req.params.unknow != 'false') {
+            sexQuery.push('unknow')
+        }
+        if (sexQuery.length > 0) {
+            queryFound.where('sex').equals(sexQuery)
+            queryLost.where('sex').equals(sexQuery)
+        }
+        let collarQuery = [];
+        if (req.params.haveCollar != 'false') {
+            collarQuery.push(true)
+        }
+        if (req.params.notHaveCollar != 'false') {
+            collarQuery.push(false)
+        }
+        if (collarQuery.length > 0) {
+            queryFound.where('collar').equals(collarQuery)
+            queryLost.where('collar').equals(collarQuery)
+        }
+        const [lostResult, foundResult] = await Promise.all([
+            queryLost.exec(),
+            queryFound.exec()
+        ])
+        let result = [];
+        for(let i = 0; i < lostResult.length; i++) {
+            result.push(lostResult[i]);
+        }
+        for(let i = 0; i < foundResult.length; i++) {
+            result.push(foundResult[i]);
+        }
+        result.sort(sortByDate);
+        res.json({ result: true, msg: `search success`, searchResult: result });
+    } catch (err) {
+        console.log(err.message)
+        e = new Error(err.body);
+        e.statusCode = err.statusCode;
+        next(e);
+    }
+}
 
 
-module.exports = { searchAll };
+
+
+
+module.exports = { searchAll, searchAllNoMap };

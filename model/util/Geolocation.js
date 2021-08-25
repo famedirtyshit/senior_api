@@ -8,4 +8,14 @@ const sortByGeo = (a, b) => {
     return 0;
 }
 
-module.exports = { sortByGeo }
+const sortByDate = (a, b) => {
+    if (new Date(a.date) < new Date(b.date)) {
+        return -1;
+    }
+    if (new Date(a.date) > new Date(b.date)) {
+        return 1;
+    }
+    return 0;
+}
+
+module.exports = { sortByGeo, sortByDate }

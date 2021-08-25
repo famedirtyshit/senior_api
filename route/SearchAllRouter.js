@@ -4,6 +4,8 @@ const searchAllController = require(`../controller/SearchAllController`);
 
 router.get(`/get/:lat/:lng/:radius/:male/:female/:unknow/:haveCollar/:notHaveCollar`,searchAllController.searchAll);
 
+router.get(`/getAll/:male/:female/:unknow/:haveCollar/:notHaveCollar`,searchAllController.searchAllNoMap);
+
 
 
 

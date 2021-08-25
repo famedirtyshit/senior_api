@@ -60,6 +60,53 @@ const searchFoundCat = (req, res, next) => {
         }
 }
 
+const searchFoundCatNoMap = (req, res, next) => {
+        try {
+                connectDB();
+                let searchResult;
+                let query = postFoundCatModel.find();
+                let sexQuery = [];
+                if (req.params.male != 'false') {
+                        sexQuery.push('true');
+                }
+                if (req.params.female != 'false') {
+                        sexQuery.push('false');
+                }
+                if (req.params.unknow != 'false') {
+                        sexQuery.push('unknow')
+                }
+                if (sexQuery.length > 0) {
+                        query.where('sex').equals(sexQuery)
+                }
+                let collarQuery = [];
+                if (req.params.haveCollar != 'false') {
+                        collarQuery.push(true)
+                }
+                if (req.params.notHaveCollar != 'false') {
+                        collarQuery.push(false)
+                }
+                if (collarQuery.length > 0) {
+                        query.where('collar').equals(collarQuery)
+                }
+                query.sort({date: 'desc'})
+                query.exec()
+                        .then(response => {
+                                searchResult = response
+                                res.status(200).json({ result: true, msg: `search success`, searchResult });
+                        })
+                        .catch(err => {
+                                e = new Error(err.body);
+                                e.statusCode = err.statusCode;
+                                next(e);
+                        });
+
+        } catch (err) {
+                e = new Error(err.body);
+                e.statusCode = err.statusCode;
+                next(e);
+        }
+}
 
 
-module.exports = { searchFoundCat };
+
+module.exports = { searchFoundCat, searchFoundCatNoMap };
