@@ -59,18 +59,24 @@ const searchAll = async (req, res, next) => {
             queryFound.exec()
         ])
         let result = [];
-        for(let i = 0; i < lostResult.length; i++) {
-            let postObj = {distance: null,post:lostResult[i]};
-            postObj.distance = lostResult[i].checkDistance(req.params.lat,req.params.lng,lostResult[i].location.coordinates[1],lostResult[i].location.coordinates[0]);
+        for (let i = 0; i < lostResult.length; i++) {
+            let postObj = { distance: null, post: lostResult[i] };
+            postObj.distance = lostResult[i].checkDistance(req.params.lat, req.params.lng, lostResult[i].location.coordinates[1], lostResult[i].location.coordinates[0]);
             result.push(postObj);
         }
-        for(let i = 0; i < foundResult.length; i++) {
-            let postObj = {distance: null,post:foundResult[i]};
-            postObj.distance = foundResult[i].checkDistance(req.params.lat,req.params.lng,foundResult[i].location.coordinates[1],foundResult[i].location.coordinates[0]);
+        for (let i = 0; i < foundResult.length; i++) {
+            let postObj = { distance: null, post: foundResult[i] };
+            postObj.distance = foundResult[i].checkDistance(req.params.lat, req.params.lng, foundResult[i].location.coordinates[1], foundResult[i].location.coordinates[0]);
             result.push(postObj);
         }
-        result.sort(sortByGeo);
-        res.json({ result: true, msg: `search success`, searchResult: result });
+        let maxPerPage = parseInt(process.env.MAXPERPAGE);
+        if (req.params.sortType == 'latest') {
+            result.sort(sortByDate);
+        } else {
+            result.sort(sortByGeo);
+        }
+        let pageResult = result.slice(maxPerPage * (req.params.page - 1), (maxPerPage * (req.params.page - 1)) + maxPerPage);
+        res.json({ result: true, msg: `search success`, searchResult: pageResult, count: result.length });
     } catch (err) {
         console.log(err.message)
         e = new Error(err.body);
@@ -114,14 +120,16 @@ const searchAllNoMap = async (req, res, next) => {
             queryFound.exec()
         ])
         let result = [];
-        for(let i = 0; i < lostResult.length; i++) {
+        for (let i = 0; i < lostResult.length; i++) {
             result.push(lostResult[i]);
         }
-        for(let i = 0; i < foundResult.length; i++) {
+        for (let i = 0; i < foundResult.length; i++) {
             result.push(foundResult[i]);
         }
+        let maxPerPage = parseInt(process.env.MAXPERPAGE);
         result.sort(sortByDate);
-        res.json({ result: true, msg: `search success`, searchResult: result });
+        let pageResult = result.slice(maxPerPage * (req.params.page - 1), (maxPerPage * (req.params.page - 1)) + maxPerPage);
+        res.json({ result: true, msg: `search success`, searchResult: pageResult, count: result.length });
     } catch (err) {
         console.log(err.message)
         e = new Error(err.body);

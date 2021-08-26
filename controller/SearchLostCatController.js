@@ -2,13 +2,13 @@ const { postLostCatModel } = require(`../model/PostLostCat`);
 const connectDB = require(`../config/ConnectDB`);
 
 
-const searchLostCat = (req, res, next) => {
+const searchLostCat = async (req, res, next) => {
         try {
                 connectDB();
                 if (!req.params.lat || !req.params.lng || !req.params.radius) {
                         res.status(400).json({ result: false, msg: 'please input data correctly' })
                 }
-                let searchResult;
+                let countFilter = {};
                 let query = postLostCatModel.find();
                 let sexQuery = [];
                 if (req.params.male != 'false') {
@@ -22,6 +22,7 @@ const searchLostCat = (req, res, next) => {
                 }
                 if (sexQuery.length > 0) {
                         query.where('sex').equals(sexQuery)
+                        countFilter["sex"] = sexQuery;
                 }
                 let collarQuery = [];
                 if (req.params.haveCollar != 'false') {
@@ -32,6 +33,12 @@ const searchLostCat = (req, res, next) => {
                 }
                 if (collarQuery.length > 0) {
                         query.where('collar').equals(collarQuery)
+                        countFilter["collar"] = collarQuery;
+                }
+                let maxPerPage = parseInt(process.env.MAXPERPAGE);
+                query.skip(maxPerPage * (req.params.page - 1)).limit(maxPerPage);
+                if (req.params.sortType == 'latest') {
+                        query.sort({ date: 'desc' })
                 }
                 query.where('location').equals({
                         $near: {
@@ -42,17 +49,20 @@ const searchLostCat = (req, res, next) => {
                                 }
                         }
                 })
-                query.exec()
-                        .then(response => {
-                                searchResult = response
-                                res.status(200).json({ result: true, msg: `search success`, searchResult });
-                        })
-                        .catch(err => {
-                                e = new Error(err.body);
-                                e.statusCode = err.statusCode;
-                                next(e);
-                        });
-
+                countFilter["location"] = {
+                        $near: {
+                                $maxDistance: req.params.radius * 1000,
+                                $geometry: {
+                                        type: "Point",
+                                        coordinates: [req.params.lng, req.params.lat]
+                                }
+                        }
+                }
+                const [result, count] = await Promise.all([
+                        query.exec(),
+                        postLostCatModel.count(countFilter)
+                ])
+                res.status(200).json({ result: true, msg: `search success`, searchResult: result, count: count });
         } catch (err) {
                 e = new Error(err.body);
                 e.statusCode = err.statusCode;
@@ -60,10 +70,10 @@ const searchLostCat = (req, res, next) => {
         }
 }
 
-const searchLostCatNoMap = (req, res, next) => {
+const searchLostCatNoMap = async (req, res, next) => {
         try {
                 connectDB();
-                let searchResult;
+                let countFilter = {};
                 let query = postLostCatModel.find();
                 let sexQuery = [];
                 if (req.params.male != 'false') {
@@ -77,6 +87,7 @@ const searchLostCatNoMap = (req, res, next) => {
                 }
                 if (sexQuery.length > 0) {
                         query.where('sex').equals(sexQuery)
+                        countFilter["sex"] = sexQuery;
                 }
                 let collarQuery = [];
                 if (req.params.haveCollar != 'false') {
@@ -87,19 +98,16 @@ const searchLostCatNoMap = (req, res, next) => {
                 }
                 if (collarQuery.length > 0) {
                         query.where('collar').equals(collarQuery)
+                        countFilter["collar"] = collarQuery;
                 }
+                let maxPerPage = parseInt(process.env.MAXPERPAGE);
+                query.skip(maxPerPage * (req.params.page - 1)).limit(maxPerPage);
                 query.sort({date: 'desc'})
-                query.exec()
-                        .then(response => {
-                                searchResult = response
-                                res.status(200).json({ result: true, msg: `search success`, searchResult });
-                        })
-                        .catch(err => {
-                                e = new Error(err.body);
-                                e.statusCode = err.statusCode;
-                                next(e);
-                        });
-
+                const [result, count] = await Promise.all([
+                        query.exec(),
+                        postLostCatModel.count(countFilter)
+                ])
+                res.status(200).json({ result: true, msg: `search success`, searchResult: result, count: count });
         } catch (err) {
                 e = new Error(err.body);
                 e.statusCode = err.statusCode;
