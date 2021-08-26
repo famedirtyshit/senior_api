@@ -76,7 +76,11 @@ const searchAll = async (req, res, next) => {
             result.sort(sortByGeo);
         }
         let pageResult = result.slice(maxPerPage * (req.params.page - 1), (maxPerPage * (req.params.page - 1)) + maxPerPage);
-        res.json({ result: true, msg: `search success`, searchResult: pageResult, count: result.length });
+        let resultObj =[];
+        pageResult.map((item) => {
+            resultObj.push(item.post);
+        })
+        res.json({ result: true, msg: `search success`, searchResult: resultObj, count: result.length });
     } catch (err) {
         console.log(err.message)
         e = new Error(err.body);
