@@ -8,7 +8,7 @@ const searchFoundCat = async (req, res, next) => {
                         res.status(400).json({ result: false, msg: 'please input data correctly' })
                 }
                 let countFilter = {};
-                let query = postFoundCatModel.find();
+                let query = postFoundCatModel.find({date:{$gte:req.params.from,$lte:req.params.to}}).populate('owner');
                 let sexQuery = [];
                 if (req.params.male != 'false') {
                         sexQuery.push('true');
@@ -64,6 +64,7 @@ const searchFoundCat = async (req, res, next) => {
                 res.status(200).json({ result: true, msg: `search success`, searchResult: result, count: count });
         } catch (err) {
                 e = new Error(err.body);
+                e.message = err.message;
                 e.statusCode = err.statusCode;
                 next(e);
         }
@@ -73,7 +74,7 @@ const searchFoundCatNoMap = async (req, res, next) => {
         try {
                 connectDB();
                 let countFilter = {};
-                let query = postFoundCatModel.find();
+                let query = postFoundCatModel.find({date:{$gte:req.params.from,$lte:req.params.to}}).populate('owner');
                 let sexQuery = [];
                 if (req.params.male != 'false') {
                         sexQuery.push('true');
@@ -109,6 +110,7 @@ const searchFoundCatNoMap = async (req, res, next) => {
                 res.status(200).json({ result: true, msg: `search success`, searchResult: result, count: count });
         } catch (err) {
                 e = new Error(err.body);
+                e.message = err.message;
                 e.statusCode = err.statusCode;
                 next(e);
         }

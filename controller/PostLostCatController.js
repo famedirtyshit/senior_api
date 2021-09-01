@@ -3,6 +3,7 @@ const connectDB = require(`../config/ConnectDB`);
 const firebase = require('firebase/app');
 require("firebase/storage");
 fs = require('fs');
+const mongoose = require(`mongoose`);
 
 const postLostCat = async (req, res, next) => {
         let e;
@@ -24,6 +25,7 @@ const postLostCat = async (req, res, next) => {
                                 sex: payload.sex,
                                 collar: payload.collar,
                                 description: payload.description,
+                                owner: mongoose.Types.ObjectId(payload.owner)
                         });
                         if (filePayload.length > 0) {
                                 let firebaseStorage = firebase.storage();
@@ -42,12 +44,14 @@ const postLostCat = async (req, res, next) => {
                                                                         })
                                                                         .catch(err => {
                                                                                 e = new Error(err.body);
+                                                                                e.message = err.message;
                                                                                 e.statusCode = err.statusCode;
                                                                                 next(e);
                                                                         })
                                                         }
                                                 } catch (err) {
                                                         e = new Error(err.body);
+                                                        e.message = err.message;
                                                         e.statusCode = err.statusCode;
                                                         next(e);
                                                 }
@@ -62,6 +66,7 @@ const postLostCat = async (req, res, next) => {
                                         })
                                         .catch(err => {
                                                 e = new Error(err.body);
+                                                e.message = err.message;
                                                 e.statusCode = err.statusCode;
                                                 next(e);
                                         })
@@ -72,6 +77,7 @@ const postLostCat = async (req, res, next) => {
                 }
         } catch (err) {
                 e = new Error(err.body);
+                e.message = err.message;
                 e.statusCode = err.statusCode;
                 next(e);
         }

@@ -12,6 +12,7 @@ const searchLostCatRouter = require(`./route/SearchLostCatRouter`);
 const postFoundCatRouter = require(`./route/PostFoundCatRouter`);
 const searchFoundCatRouter = require(`./route/SearchFoundCatRouter`);
 const searchAllRouter = require(`./route/SearchAllRouter`);
+const accountRouter = require(`./route/AccountRouter`)
 
 app.use(cors({
     origin: 'https://dev-next-cloud-run-4p3fhebxra-as.a.run.app',
@@ -36,6 +37,8 @@ app.use(`/postFoundCat`, postFoundCatRouter);
 app.use(`/searchFoundCat`, searchFoundCatRouter);
 
 app.use(`/searchAll`, searchAllRouter);
+
+app.use(`/account`, accountRouter);
 
 app.all('*', (req, res, next) => {
     const err = new Error(`path ${req.path} not found.`)

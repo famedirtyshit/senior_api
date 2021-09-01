@@ -9,8 +9,8 @@ const searchAll = async (req, res, next) => {
         if (!req.params.lat || !req.params.lng || !req.params.radius) {
             res.status(400).json({ result: false, msg: 'please input data correctly' })
         }
-        let queryFound = postFoundCatModel.find();
-        let queryLost = postLostCatModel.find();
+        let queryFound = postFoundCatModel.find({date:{$gte:req.params.from,$lte:req.params.to}}).populate('owner');
+        let queryLost = postLostCatModel.find({date:{$gte:req.params.from,$lte:req.params.to}}).populate('owner');
         let sexQuery = [];
         if (req.params.male != 'false') {
             sexQuery.push('true');
@@ -84,6 +84,7 @@ const searchAll = async (req, res, next) => {
     } catch (err) {
         console.log(err.message)
         e = new Error(err.body);
+        e.message = err.message;
         e.statusCode = err.statusCode;
         next(e);
     }
@@ -92,8 +93,8 @@ const searchAll = async (req, res, next) => {
 const searchAllNoMap = async (req, res, next) => {
     try {
         connectDB();
-        let queryFound = postFoundCatModel.find();
-        let queryLost = postLostCatModel.find();
+        let queryFound = postFoundCatModel.find({date:{$gte:req.params.from,$lte:req.params.to}}).populate('owner');
+        let queryLost = postLostCatModel.find({date:{$gte:req.params.from,$lte:req.params.to}}).populate('owner');
         let sexQuery = [];
         if (req.params.male != 'false') {
             sexQuery.push('true');
@@ -137,6 +138,7 @@ const searchAllNoMap = async (req, res, next) => {
     } catch (err) {
         console.log(err.message)
         e = new Error(err.body);
+        e.message = err.message;
         e.statusCode = err.statusCode;
         next(e);
     }

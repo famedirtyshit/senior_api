@@ -9,7 +9,9 @@ const postLostCatSchema = new schema({
     sex : String,
     collar : Boolean,
     description : String,
-    urls : [{url : String}]
+    urls : [{url : String}],
+    owner: { type: schema.Types.ObjectId, ref: 'users' },
+    nearFoundCat: [{ status: { type: Boolean, default: true }, postId: { type: schema.Types.ObjectId } }]
 })
 
 postLostCatSchema.index({location: '2dsphere'})
