@@ -1,5 +1,7 @@
 const { postFoundCatModel } = require(`../model/PostFoundCat`);
+const { postLostCatModel } = require(`../model/PostLostCat`);
 const connectDB = require(`../config/ConnectDB`);
+const mongoose = require(`mongoose`);
 
 const searchFoundCat = async (req, res, next) => {
         try {
@@ -8,7 +10,7 @@ const searchFoundCat = async (req, res, next) => {
                         res.status(400).json({ result: false, msg: 'please input data correctly' })
                 }
                 let countFilter = {};
-                let query = postFoundCatModel.find({date:{$gte:req.params.from,$lte:req.params.to}}).populate('owner');
+                let query = postFoundCatModel.find({ date: { $gte: req.params.from, $lte: req.params.to } }).populate('owner');
                 let sexQuery = [];
                 if (req.params.male != 'false') {
                         sexQuery.push('true');
@@ -74,7 +76,7 @@ const searchFoundCatNoMap = async (req, res, next) => {
         try {
                 connectDB();
                 let countFilter = {};
-                let query = postFoundCatModel.find({date:{$gte:req.params.from,$lte:req.params.to}}).populate('owner');
+                let query = postFoundCatModel.find({ date: { $gte: req.params.from, $lte: req.params.to } }).populate('owner');
                 let sexQuery = [];
                 if (req.params.male != 'false') {
                         sexQuery.push('true');
@@ -116,6 +118,59 @@ const searchFoundCatNoMap = async (req, res, next) => {
         }
 }
 
+const searchNearFoundPostFromLostPost = async (req, res, next) => {
+        try {
+                connectDB();
+                if (!req.params.lostPostId) {
+                        res.status(400).json({ result: false, message: 'bad request error', searchResult: null });
+                }
+                let lostPost = await postLostCatModel.findById({ _id: req.params.lostPostId }).populate('nearFoundCat._id').exec();
+                res.status(200).json({ result: true, searchResult: lostPost });
+        } catch (err) {
+                e = new Error(err.body);
+                e.message = err.message;
+                e.statusCode = err.statusCode;
+                next(e);
+        }
+}
 
+const checkNearFoundCatPost = async (req, res, next) => {
+        try {
+                connectDB();
+                if (!req.params.foundPostId || !req.params.lostPostId) {
+                        res.status(400).json({ result: false, message: 'bad request error', searchResult: null });
+                }
+                postLostCatModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(req.params.lostPostId) }, { $set: { "nearFoundCat.$[element].status": false } }, {
+                        upsert: true,
+                        arrayFilters: [{ "element._id": mongoose.Types.ObjectId(req.params.foundPostId) }]
+                }, async (err, result) => {
+                        if (err) {
+                                e = new Error(err.body);
+                                e.message = err.message;
+                                e.statusCode = err.statusCode;
+                                next(e);
+                        } else {
+                                let foundPostRef = null;
+                                result.nearFoundCat.map((item) => {
+                                        if (item._id.toString() == req.params.foundPostId.toString()) {
+                                                foundPostRef = item;
+                                                return;
+                                        }
+                                })
+                                if (foundPostRef == null) {
+                                        res.status(200).json({ result: true, updateResult: foundPostRef })
+                                } else {
+                                        let foundPostDetail = await postFoundCatModel.findById({ _id: mongoose.Types.ObjectId(foundPostRef._id) }).populate('owner').exec();
+                                        res.status(200).json({ result: true, updateResult: foundPostDetail });
+                                }
+                        }
+                })
+        } catch (err) {
+                e = new Error(err.body);
+                e.message = err.message;
+                e.statusCode = err.statusCode;
+                next(e);
+        }
+}
 
-module.exports = { searchFoundCat, searchFoundCatNoMap };
+module.exports = { searchFoundCat, searchFoundCatNoMap, searchNearFoundPostFromLostPost, checkNearFoundCatPost };

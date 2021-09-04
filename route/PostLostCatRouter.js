@@ -6,7 +6,4 @@ const parseMp = require('express-parse-multipart');
 router.post(`/post`,parseMp,postLostCatController.postLostCat);
 
 
-
-
-
 module.exports = router;

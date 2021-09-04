@@ -8,4 +8,6 @@ router.get(`/getUser/:id`,accountController.getUser);
 
 router.get(`/getMyPost/:id`,accountController.getMyPost)
 
+router.get(`/getMyDashboard/:id`,accountController.getMyDashboard)
+
 module.exports = router;

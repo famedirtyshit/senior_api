@@ -103,45 +103,4 @@ const testdelete = async (req, res, next) => {
         }
 }
 
-const testCheck = async (req, res, next) => {
-        try {
-                connectDB();
-                let foundPostCheckStatus = '61267e79b0112967b6d85525'
-                testColModel.findOneAndUpdate({ _id: '612a57eba169a25ee6ae8a8d'}, { $set: { "post.$[element].status": false } }, {
-                        upsert: true,
-                        arrayFilters: [{"element.postId" : mongoose.Types.ObjectId(foundPostCheckStatus)}]
-                }, (err, result) => {
-                        if (err) {
-                                e = new Error(err.body);
-                                e.statusCode = err.statusCode;
-                                next(e);
-                                console.log('------------')
-                                console.log('set status noti fail')
-                                console.log(err)
-                                console.log('------------')
-                        } else {
-                                let foundPostDetail = null;
-                                result.post.map((item) => {
-                                        if (item.postId.toString() == foundPostCheckStatus.toString()) {
-                                                foundPostDetail = item;
-                                                return;
-                                        }
-                                })
-                                res.status(200).json({ result: true, updateResult: foundPostDetail })
-                                console.log(result)
-                                console.log('------------')
-                        }
-                })
-        } catch (err) {
-                console.log(err)
-                e = new Error(err.body);
-                e.statusCode = err.statusCode;
-                next(e);
-        }
-}
-
-
-
-
-
-module.exports = { postFoundCat, testdelete, testCheck };
+module.exports = { postFoundCat, testdelete };

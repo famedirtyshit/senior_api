@@ -53,7 +53,52 @@ process.on('SIGINT', function () {
     });
 });
 
-app.listen(8000);
+// let appListen = app.listen(8000);
+
+const server = require('http').createServer(app);
+io = require('socket.io')(server, {
+    cors: {
+        origin: 'http://localhost:3000',
+        methods: ['GET', 'POST']
+    }
+});
+sessionMap = new Map();
+io.on('connection', (socket) => {
+
+    socket.on('saveSession', (userId) => {
+        if (sessionMap.get(userId) == undefined) {
+            sessionMap.set(userId, [socket.id]);
+        } else {
+            let allSession = sessionMap.get(userId);
+            allSession.push(socket.id);
+            sessionMap.set(userId, allSession);
+        }
+    })
+
+    socket.on('disconnect', () => {
+        let target;
+        for (let [key, value] of sessionMap.entries()) {
+            for (let i = 0; i < value.length; i++) {
+                if (value[i] == socket.id) {
+                    target = { key: key, index: i };
+                    break;
+                }
+            }
+        }
+        if (target != undefined) {
+            if (sessionMap.get(target.key).length < 2) {
+                sessionMap.delete(target.key);
+            } else {
+                sessionMap.get(target.key).splice(target.index, 1);
+            }
+        }
+    })
+
+})
+
+
+server.listen(8000);
+
 
 app.use((err, req, res, next) => {
     const statusCode = err.statusCode || 500;

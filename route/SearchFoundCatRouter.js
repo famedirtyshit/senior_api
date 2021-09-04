@@ -6,8 +6,8 @@ router.get(`/get/:lat/:lng/:radius/:male/:female/:unknow/:haveCollar/:notHaveCol
 
 router.get(`/getAll/:male/:female/:unknow/:haveCollar/:notHaveCollar/:page/:from/:to`,searchFoundCatController.searchFoundCatNoMap);
 
+router.get(`/getNearPost/:lostPostId`,searchFoundCatController.searchNearFoundPostFromLostPost)
 
-
-
+router.get(`/checkNearPost/:lostPostId/:foundPostId`,searchFoundCatController.checkNearFoundCatPost)
 
 module.exports = router;

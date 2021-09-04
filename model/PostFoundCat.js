@@ -28,7 +28,7 @@ postFoundCatSchema.post('save', function (doc, next) {
     let query = postLostCatModel.find();
     query.where('location').equals({
         $near: {
-            $maxDistance: 5000,
+            $maxDistance: 2000,
             $geometry: {
                 type: "Point",
                 coordinates: [doc.location.coordinates[0], doc.location.coordinates[1]]
@@ -36,7 +36,7 @@ postFoundCatSchema.post('save', function (doc, next) {
         }
     }).exec().then(res => {
         let lostPostInArea = res.map(post => post._id)
-        postLostCatModel.updateMany({ _id: lostPostInArea }, { $push: { nearFoundCat: { postId: mongoose.Types.ObjectId(doc._id) } } }, null, (err, result) => {
+        postLostCatModel.updateMany({ _id: lostPostInArea }, { $push: { nearFoundCat: { _id: mongoose.Types.ObjectId(doc._id) } } }, null, (err, result) => {
             if (err) {
                 e = new Error(err.body);
                 e.message = err.message;
@@ -48,6 +48,14 @@ postFoundCatSchema.post('save', function (doc, next) {
                 console.log('------------')
             } else {
                 next();
+                res.map(lostPost => {
+                    let session = sessionMap.get(lostPost.owner.toString());
+                    if (session != undefined && session.length > 0) {
+                        session.map(item => {
+                            io.to(item).emit('newNearPost', { foundPost: doc, lostPost: lostPost })
+                        })
+                    }
+                })
             }
         })
     }).catch(err => {
@@ -128,6 +136,6 @@ postFoundCatSchema.post('findOneAndDelete', function (next) {
 });
 
 //ชื่อ collection
-const postFoundCatModel = mongoose.model('post_found_cat', postFoundCatSchema);
+const postFoundCatModel = mongoose.model('post_found_cats', postFoundCatSchema);
 
 module.exports = { postFoundCatModel };

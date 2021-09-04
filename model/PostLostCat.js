@@ -11,7 +11,7 @@ const postLostCatSchema = new schema({
     description : String,
     urls : [{url : String}],
     owner: { type: schema.Types.ObjectId, ref: 'users' },
-    nearFoundCat: [{ status: { type: Boolean, default: true }, postId: { type: schema.Types.ObjectId } }]
+    nearFoundCat: [{ status: { type: Boolean, default: true }, _id: { type: schema.Types.ObjectId, ref: 'post_found_cats' } }]
 })
 
 postLostCatSchema.index({location: '2dsphere'})
@@ -24,6 +24,6 @@ postLostCatSchema.methods.checkDistance = (srcLat, srcLng, desLat, desLng) => {
 }
 
                                 //ชื่อ collection
-const postLostCatModel = mongoose.model('post_lost_cat', postLostCatSchema);
+const postLostCatModel = mongoose.model('post_lost_cats', postLostCatSchema);
 
 module.exports = { postLostCatModel };
