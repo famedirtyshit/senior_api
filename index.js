@@ -105,9 +105,10 @@ io.on('connection', (socket) => {
 
 })
 
-server.listen(8000);
+const port = process.env.PORT || 8005;
+server.listen(port);
 
 
 
 
-exports.catusService = app;
+exports.catusService = server;
