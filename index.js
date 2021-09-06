@@ -67,7 +67,7 @@ app.use((err, req, res, next) => {
 const server = require('http').createServer(app);
 io = require('socket.io')(server, {
     cors: {
-        origin: 'https://dev-next-cloud-run-4p3fhebxra-as.a.run.app',
+        origin: '*',
         methods: ['GET', 'POST']
     }
 });
@@ -105,10 +105,9 @@ io.on('connection', (socket) => {
 
 })
 
-const port = process.env.PORT || 8005;
-server.listen(port);
+server.listen(8000);
 
 
 
 
-exports.catusService = server;
+exports.catusService = app;
