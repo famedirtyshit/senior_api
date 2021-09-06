@@ -55,6 +55,15 @@ process.on('SIGINT', function () {
 
 // let appListen = app.listen(8000);
 
+app.use((err, req, res, next) => {
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode).json({
+        result: false,
+        message: err.message,
+        stack: err.stack
+    });
+});
+
 const server = require('http').createServer(app);
 io = require('socket.io')(server, {
     cors: {
@@ -96,17 +105,9 @@ io.on('connection', (socket) => {
 
 })
 
-const port = process.env.PORT || 8080;
-server.listen(port);
+server.listen(8000);
 
 
-app.use((err, req, res, next) => {
-    const statusCode = err.statusCode || 500;
-    res.status(statusCode).json({
-        result: false,
-        message: err.message,
-        stack: err.stack
-    });
-});
 
-exports.catusService = app;
+
+exports.catusService = server;
