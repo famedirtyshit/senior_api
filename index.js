@@ -68,7 +68,8 @@ const server = require('http').createServer(app);
 io = require('socket.io')(server, {
     cors: {
         origin: '*',
-        methods: ['GET', 'POST']
+        methods: ['GET', 'POST'],
+        credentials: true
     }
 });
 sessionMap = new Map();
