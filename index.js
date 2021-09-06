@@ -58,7 +58,7 @@ process.on('SIGINT', function () {
 const server = require('http').createServer(app);
 io = require('socket.io')(server, {
     cors: {
-        origin: 'http://localhost:3000',
+        origin: 'https://dev-next-cloud-run-4p3fhebxra-as.a.run.app',
         methods: ['GET', 'POST']
     }
 });
