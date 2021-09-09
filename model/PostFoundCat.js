@@ -11,7 +11,7 @@ const postFoundCatSchema = new schema({
     sex: String,
     collar: Boolean,
     description: String,
-    urls: [{ url: String }],
+    urls: [{ url: String, fileName: String }],
     owner: { type: schema.Types.ObjectId, ref: 'users' }
 })
 
@@ -68,70 +68,22 @@ postFoundCatSchema.post('save', function (doc, next) {
 })
 
 postFoundCatSchema.post('findOneAndDelete', function (next) {
-    // Remove all the assignment docs that reference the removed person.
-    console.log('delete post in other')
-    // testColModel.deleteMany({ 'post': this._id }, function (err, result) {
-    //     if (err) {
-    //         e = new Error(err.body);
-    //         e.statusCode = err.statusCode;
-    //         next(e);
-    //     } else {
-    //         console.log('success');
-    //         next();
-    //     }
-    // });
     try {
         const queryId = this.getQuery()["_id"];
-        testColModel.updateMany({ 'post.postId': queryId }, { $pull: { post: { postId: queryId } } }, null, (err, res) => {
-            console.log(res)
-            console.log('------------')
+        postLostCatModel.updateMany({ 'nearFoundCat._id': queryId }, { $pull: { nearFoundCat: { _id: queryId } } }, null, (err, res) => {
             if (err) {
-                console.log('------------')
-                console.log('delete array post noti fail')
                 console.log(err)
-                console.log('------------')
+                e = new Error(err.body);
+                e.statusCode = err.statusCode;
+                next(e);
             }
         })
-        // -----------------------------
-        // let allQuery = [];
-        // console.log(queryId)
-        // testColModel.find({ post: queryId }).exec().then(res => {
-        //     console.log(res)
-        //     console.log('---------------')
-        //     let newPost = [];
-        //     res.map(item => {
-        //         for(let i = 0; i < item.post.length; i++){
-        //             // console.log(item.post[i])
-        //             // console.log(queryId)
-        //             if(item.post[i].toString() != queryId.toString()){
-        //                 newPost.push(item.post[i])
-        //                 // console.log('!=')
-        //             }
-        //         }
-        //         item.post = newPost;
-        //         newPost = [];
-        //         allQuery.push(item.save())
-        //     })
-        //     // Promise.all(allQuery);
-        // }).catch(err => {
-        //     console.log('find error')
-        //     console.log(err)
-        // })
-        // ------------------------------
-        // let query = testColModel.find();
-        // // query.where({ post: '61267dddb0112967b6d85520' })
-        // // query.exec().then(res => { console.log(res); next(); }).catch(err => {
-        // //     e = new Error(err.body);
-        // //     e.statusCode = err.statusCode;
-        // //     // next(e);
-        // // })
-        // ----------------------------------------
     } catch (err) {
         console.log('error in middle')
         console.log(err)
         e = new Error(err.body);
         e.statusCode = err.statusCode;
-        // next(e);
+        next(e);
     }
 });
 
