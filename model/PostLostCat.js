@@ -4,17 +4,17 @@ const geolib = require('geolib');
 
 const postLostCatSchema = new schema({
     postType: { type: String, default: 'lost' },
-    location: {type: { type: String, enum: ['Point'], require: true }, coordinates: { type: [Number], required: true }},
-    date : Date,
-    sex : String,
-    collar : Boolean,
-    description : String,
-    urls : [{url : String, fileName: String}],
+    location: { type: { type: String, enum: ['Point'], require: true }, coordinates: { type: [Number], required: true } },
+    date: Date,
+    sex: String,
+    collar: Boolean,
+    description: String,
+    urls: [{ url: String, fileName: String }],
     owner: { type: schema.Types.ObjectId, ref: 'users' },
     nearFoundCat: [{ status: { type: Boolean, default: true }, _id: { type: schema.Types.ObjectId, ref: 'post_found_cats' } }]
-})
+}, { timestamps: true })
 
-postLostCatSchema.index({location: '2dsphere'})
+postLostCatSchema.index({ location: '2dsphere' })
 
 postLostCatSchema.methods.checkDistance = (srcLat, srcLng, desLat, desLng) => {
     return geolib.getDistance(
@@ -23,7 +23,7 @@ postLostCatSchema.methods.checkDistance = (srcLat, srcLng, desLat, desLng) => {
     );
 }
 
-                                //ชื่อ collection
+//ชื่อ collection
 const postLostCatModel = mongoose.model('post_lost_cats', postLostCatSchema);
 
 module.exports = { postLostCatModel };

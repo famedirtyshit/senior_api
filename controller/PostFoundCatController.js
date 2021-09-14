@@ -3,7 +3,6 @@ const connectDB = require(`../config/ConnectDB`);
 const firebase = require('firebase/app');
 require("firebase/storage");
 fs = require('fs');
-const { testColModel } = require(`../model/TestCol`);
 const mongoose = require(`mongoose`);
 const CryptoJS = require("crypto-js");
 

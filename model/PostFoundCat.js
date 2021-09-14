@@ -1,7 +1,6 @@
 const mongoose = require(`mongoose`);
 const schema = mongoose.Schema;
 const geolib = require('geolib');
-const { testColModel } = require(`./TestCol`);
 const { postLostCatModel } = require(`./PostLostCat`);
 
 const postFoundCatSchema = new schema({
@@ -13,7 +12,7 @@ const postFoundCatSchema = new schema({
     description: String,
     urls: [{ url: String, fileName: String }],
     owner: { type: schema.Types.ObjectId, ref: 'users' }
-})
+}, { timestamps: true })
 
 postFoundCatSchema.index({ location: '2dsphere' })
 
@@ -35,7 +34,12 @@ postFoundCatSchema.post('save', function (doc, next) {
             }
         }
     }).exec().then(res => {
-        let lostPostInArea = res.map(post => post._id)
+        let lostPostInArea = [];
+        res.map(post => {
+            if (post.owner.toString() != doc.owner.toString()) {
+                lostPostInArea.push(post._id);
+            }
+        })
         postLostCatModel.updateMany({ _id: lostPostInArea }, { $push: { nearFoundCat: { _id: mongoose.Types.ObjectId(doc._id) } } }, null, (err, result) => {
             if (err) {
                 e = new Error(err.body);
@@ -49,11 +53,13 @@ postFoundCatSchema.post('save', function (doc, next) {
             } else {
                 next();
                 res.map(lostPost => {
-                    let session = sessionMap.get(lostPost.owner.toString());
-                    if (session != undefined && session.length > 0) {
-                        session.map(item => {
-                            io.to(item).emit('newNearPost', { foundPost: doc, lostPost: lostPost })
-                        })
+                    if (lostPost.owner.toString() != doc.owner.toString()) {
+                        let session = sessionMap.get(lostPost.owner.toString());
+                        if (session != undefined && session.length > 0) {
+                            session.map(item => {
+                                io.to(item).emit('newNearPost', { foundPost: doc, lostPost: lostPost })
+                            })
+                        }
                     }
                 })
             }
