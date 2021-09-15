@@ -10,4 +10,6 @@ router.get(`/getMyPost/:id`,accountController.getMyPost)
 
 router.get(`/getMyDashboard/:id`,accountController.getMyDashboard)
 
+router.put(`/edit`,accountController.edit);
+
 module.exports = router;

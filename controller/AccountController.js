@@ -176,4 +176,31 @@ const getMyDashboard = async (req, res, next) => {
     }
 }
 
-module.exports = { signup, getUser, getMyPost, getMyDashboard};
+const edit = async (req, res, next) => {
+    try {
+        const payload = req.body;
+        if (!payload.id || !payload.cipherCredential || !payload.firstname || !payload.lastname || !payload.phone) {
+            res.status(400).json({ result: false, msg: 'bad request error' })
+        }
+        const bytes = CryptoJS.AES.decrypt(payload.cipherCredential, process.env.PASS_HASH);
+        const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
+        if (payload.id != originalCredential) {
+            res.status(403).json({ result: false, msg: 'you don\'t have access' })
+        }
+        connectDB();
+        let updateRes = await userModel.findByIdAndUpdate(mongoose.Types.ObjectId(payload.id), { firstname: payload.firstname, lastname: payload.lastname, phone: payload.phone, facebook: payload.facebook, instagram: payload.instagram }, { new: true }).exec();
+        if (updateRes == null) {
+            res.status(500).json({ result: false, msg: 'user not exist', updateResult: updateRes })
+        } else {
+            res.status(200).json({ result: true, msg: 'update success', updateResult: updateRes })
+        }
+    } catch (err) {
+        console.log(err)
+        e = new Error(err.body);
+        e.message = err.message;
+        e.statusCode = err.statusCode;
+        next(e);
+    }
+}
+
+module.exports = { signup, getUser, getMyPost, getMyDashboard, edit };
