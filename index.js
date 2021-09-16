@@ -15,7 +15,7 @@ const searchAllRouter = require(`./route/SearchAllRouter`);
 const accountRouter = require(`./route/AccountRouter`)
 
 app.use(cors({
-    origin: '*',
+    origin: 'https://dev-next-cloud-run-4p3fhebxra-as.a.run.app',
     optionsSuccessStatus: 200
 }));
 
@@ -67,7 +67,7 @@ app.use((err, req, res, next) => {
 const server = require('http').createServer(app);
 io = require('socket.io')(server, {
     cors: {
-        origin: '*',
+        origin: 'https://dev-next-cloud-run-4p3fhebxra-as.a.run.app',
         methods: ['GET', 'POST'],
         credentials: true
     }
