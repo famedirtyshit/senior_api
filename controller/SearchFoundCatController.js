@@ -59,6 +59,7 @@ const searchFoundCat = async (req, res, next) => {
                                 }
                         }
                 }
+                countFilter["date"] = { $gte: req.params.from, $lte: req.params.to };
                 const [result, count] = await Promise.all([
                         query.exec(),
                         postFoundCatModel.count(countFilter)
@@ -105,6 +106,7 @@ const searchFoundCatNoMap = async (req, res, next) => {
                 let maxPerPage = parseInt(process.env.MAXPERPAGE);
                 query.skip(maxPerPage * (req.params.page - 1)).limit(maxPerPage);
                 query.sort({ date: 'desc' })
+                countFilter["date"] = { $gte: req.params.from, $lte: req.params.to };
                 const [result, count] = await Promise.all([
                         query.exec(),
                         postFoundCatModel.count(countFilter)
