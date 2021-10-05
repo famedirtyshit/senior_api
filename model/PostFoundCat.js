@@ -11,7 +11,9 @@ const postFoundCatSchema = new schema({
     collar: Boolean,
     description: String,
     urls: [{ url: String, fileName: String }],
-    owner: { type: schema.Types.ObjectId, ref: 'users' }
+    owner: { type: schema.Types.ObjectId, ref: 'users' },
+    status: {type: String, default: 'active'},
+    idle: { type: Boolean, default: false}
 }, { timestamps: true })
 
 postFoundCatSchema.index({ location: '2dsphere' })
