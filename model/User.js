@@ -8,6 +8,7 @@ const userSchema = new schema({
     phone : { type: String, required: true },
     facebook : { type: String },
     instagram : { type: String },
+    thumbnail: { url: {type: String, default: 'default'}}
 })
                                 //ชื่อ collection
 const userModel = mongoose.model('users', userSchema);

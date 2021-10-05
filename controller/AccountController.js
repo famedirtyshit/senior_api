@@ -203,4 +203,55 @@ const edit = async (req, res, next) => {
     }
 }
 
-module.exports = { signup, getUser, getMyPost, getMyDashboard, edit };
+const changeThumbnail = async (req, res, next) => {
+    try {
+        const payload = {};
+        let filePayload = [];
+        for (let i = 0; i < req.formData.length; i++) {
+            if (req.formData[i].type == undefined) {
+                payload[req.formData[i].name] = req.formData[i].data.toString('utf-8');
+            } else {
+                filePayload.push(req.formData[i]);
+            }
+        }
+        if (filePayload.length < 1 || !payload.owner || !payload.cipherCredential) {
+            res.status(400).json({ result: false, msg: 'please input correct data' })
+        }
+        const bytes = CryptoJS.AES.decrypt(payload.cipherCredential, process.env.PASS_HASH);
+        const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
+        if (payload.owner != originalCredential) {
+            res.status(403).json({ result: false, msg: 'you don\'t have access' })
+        }
+        connectDB();
+        let firebaseStorage = firebase.storage();
+        let ref = firebaseStorage.ref();
+        let userTarget = await userModel.findById(mongoose.Types.ObjectId(payload.owner)).exec();
+        if (!userTarget) {
+            res.status(500).json({ result: false, updateResult: null, msg: 'user not exist' });
+            return;
+        }
+        let thumbnailObj = [];
+        for (let i = 0; i < filePayload.length; i++) {
+            try {
+                let fileRef = ref.child('user/' + payload.owner + '/' + 'thumbnail')
+                let putRes = await fileRef.put(filePayload[i].data, { contentType: 'image/png' })
+                let url = await putRes.ref.getDownloadURL();
+                thumbnailObj = { url: url };
+            } catch (err) {
+                e = new Error(err.body);
+                e.message = err.message;
+                e.statusCode = err.statusCode;
+                next(e);
+            }
+        }
+        let updateRes = await userModel.findByIdAndUpdate(mongoose.Types.ObjectId(payload.owner), { $set: { thumbnail: thumbnailObj } }, { new: true }).exec();
+        res.status(200).json({ result: true, updateResult: updateRes });
+    } catch (err) {
+        e = new Error(err.body);
+        e.message = err.message;
+        e.statusCode = err.statusCode;
+        next(e);
+    }
+}
+
+module.exports = { signup, getUser, getMyPost, getMyDashboard, edit, changeThumbnail };
