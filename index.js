@@ -7,7 +7,6 @@ const firebaseInit = require('./config/InitFirebase');
 const mongoose = require(`mongoose`);
 require("firebase/analytics");
 const nodemailer = require("nodemailer");
-var admin = require("firebase-admin");
 
 const postLostCatRouter = require(`./route/PostLostCatRouter`);
 const searchLostCatRouter = require(`./route/SearchLostCatRouter`);
@@ -25,20 +24,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 firebaseInit();
-admin.initializeApp({
-    credential: admin.credential.cert({
-        "type": process.env.TYPE,
-        "project_id": process.env.PROJECT_ID,
-        "private_key_id": process.env.PRIVATE_KEY_ID,
-        "private_key": process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
-        "client_email": process.env.CLIENT_EMAIL,
-        "client_id": process.env.CLIENT_ID,
-        "auth_uri": process.env.AUTH_URI,
-        "token_uri": process.env.TOKEN_URI,
-        "auth_provider_x509_cert_url": process.env.AUTH_PROVIDER_X509_CERT_URL,
-        "client_x509_cert_url": process.env.CLIENT_X509_CERT_URL
-    })
-});
 
 app.get(`/`, (req, res) => {
     res.send(`Hello World !`);
