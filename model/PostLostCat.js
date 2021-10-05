@@ -15,6 +15,7 @@ const postLostCatSchema = new schema({
 }, { timestamps: true })
 
 postLostCatSchema.index({ location: '2dsphere' })
+postLostCatSchema.index({ expires:1 }, { expireAfterSeconds: 0 });
 
 postLostCatSchema.methods.checkDistance = (srcLat, srcLng, desLat, desLng) => {
     return geolib.getDistance(
