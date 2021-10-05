@@ -6,6 +6,8 @@ global.XMLHttpRequest = require("xhr2");
 const firebaseInit = require('./config/InitFirebase');
 const mongoose = require(`mongoose`);
 require("firebase/analytics");
+const nodemailer = require("nodemailer");
+var admin = require("firebase-admin");
 
 const postLostCatRouter = require(`./route/PostLostCatRouter`);
 const searchLostCatRouter = require(`./route/SearchLostCatRouter`);
@@ -23,6 +25,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 firebaseInit();
+admin.initializeApp({
+    credential: admin.credential.cert({
+        "type": process.env.TYPE,
+        "project_id": process.env.PROJECT_ID,
+        "private_key_id": process.env.PRIVATE_KEY_ID,
+        "private_key": process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
+        "client_email": process.env.CLIENT_EMAIL,
+        "client_id": process.env.CLIENT_ID,
+        "auth_uri": process.env.AUTH_URI,
+        "token_uri": process.env.TOKEN_URI,
+        "auth_provider_x509_cert_url": process.env.AUTH_PROVIDER_X509_CERT_URL,
+        "client_x509_cert_url": process.env.CLIENT_X509_CERT_URL
+    })
+});
 
 app.get(`/`, (req, res) => {
     res.send(`Hello World !`);
@@ -39,6 +55,44 @@ app.use(`/searchFoundCat`, searchFoundCatRouter);
 app.use(`/searchAll`, searchAllRouter);
 
 app.use(`/account`, accountRouter);
+
+// app.get('/testMail', (req, res) => {
+//     admin
+//         .auth()
+//         .getUser('v4P5VXzXDNZx5oObwkoszITkoD62')
+//         .then((userRecord) => {
+//             // See the UserRecord reference doc for the contents of userRecord.
+//             let transporter = nodemailer.createTransport({
+//                 host: 'gmail',
+//                 service: 'Gmail',
+//                 auth: {
+//                     user: 'catusservice@gmail.com',
+//                     pass: 'Catus6108',
+//                 },
+//             });
+
+//             transporter.sendMail({
+//                 from: 'catusservice@gmail.com',   // ผู้ส่ง
+//                 to: userRecord.toJSON().email,// ผู้รับ
+//                 subject: "สวัสดีจ้าDynamic",                      // หัวข้อ
+//                 text: "สวัสดีนะ",                         // ข้อความ
+//                 html: `<b>สวัสดี</b>ครับ<br>
+//             <img src='https://media.giphy.com/media/TfY3cjjH0aYopkybqc/giphy.gif'>`,                // ข้อความ
+//             }, (err, info) => {
+//                 if (err) {
+//                     res.json({ result: false, detail: err })
+//                 } else {
+//                     console.log(info.messageId);
+//                     res.json({ result: info.messageId, detail: info });
+//                 }
+//             });
+//         })
+//         .catch((error) => {
+//             res.json({ result: false });
+//             console.log('Error fetching user data:', error);
+//             return;
+//         });
+// });
 
 app.all('*', (req, res, next) => {
     const err = new Error(`path ${req.path} not found.`)
