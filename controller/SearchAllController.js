@@ -54,6 +54,8 @@ const searchAll = async (req, res, next) => {
                 }
             }
         })
+        queryFound.where('status').equals('active');
+        queryLost.where('status').equals('active');
         const [lostResult, foundResult] = await Promise.all([
             queryLost.exec(),
             queryFound.exec()
@@ -120,6 +122,8 @@ const searchAllNoMap = async (req, res, next) => {
             queryFound.where('collar').equals(collarQuery)
             queryLost.where('collar').equals(collarQuery)
         }
+        queryFound.where('status').equals('active');
+        queryLost.where('status').equals('active');
         const [lostResult, foundResult] = await Promise.all([
             queryLost.exec(),
             queryFound.exec()
