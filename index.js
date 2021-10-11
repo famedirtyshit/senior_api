@@ -6,7 +6,6 @@ global.XMLHttpRequest = require("xhr2");
 const firebaseInit = require('./config/InitFirebase');
 const mongoose = require(`mongoose`);
 require("firebase/analytics");
-const nodemailer = require("nodemailer");
 
 const postLostCatRouter = require(`./route/PostLostCatRouter`);
 const searchLostCatRouter = require(`./route/SearchLostCatRouter`);
@@ -40,44 +39,6 @@ app.use(`/searchFoundCat`, searchFoundCatRouter);
 app.use(`/searchAll`, searchAllRouter);
 
 app.use(`/account`, accountRouter);
-
-// app.get('/testMail', (req, res) => {
-//     admin
-//         .auth()
-//         .getUser('v4P5VXzXDNZx5oObwkoszITkoD62')
-//         .then((userRecord) => {
-//             // See the UserRecord reference doc for the contents of userRecord.
-//             let transporter = nodemailer.createTransport({
-//                 host: 'gmail',
-//                 service: 'Gmail',
-//                 auth: {
-//                     user: 'catusservice@gmail.com',
-//                     pass: 'Catus6108',
-//                 },
-//             });
-
-//             transporter.sendMail({
-//                 from: 'catusservice@gmail.com',   // ผู้ส่ง
-//                 to: userRecord.toJSON().email,// ผู้รับ
-//                 subject: "สวัสดีจ้าDynamic",                      // หัวข้อ
-//                 text: "สวัสดีนะ",                         // ข้อความ
-//                 html: `<b>สวัสดี</b>ครับ<br>
-//             <img src='https://media.giphy.com/media/TfY3cjjH0aYopkybqc/giphy.gif'>`,                // ข้อความ
-//             }, (err, info) => {
-//                 if (err) {
-//                     res.json({ result: false, detail: err })
-//                 } else {
-//                     console.log(info.messageId);
-//                     res.json({ result: info.messageId, detail: info });
-//                 }
-//             });
-//         })
-//         .catch((error) => {
-//             res.json({ result: false });
-//             console.log('Error fetching user data:', error);
-//             return;
-//         });
-// });
 
 app.all('*', (req, res, next) => {
     const err = new Error(`path ${req.path} not found.`)

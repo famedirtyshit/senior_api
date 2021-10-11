@@ -13,4 +13,10 @@ router.put(`/deleteImage`,postFoundCatController.deleteImagePostFoundCat);
 
 router.put(`/deletePost`,postFoundCatController.deletePostFoundCat);
 
+router.post(`/sendEmailIdle`,postFoundCatController.sendEmailIdle);
+
+router.post(`/sendEmailInactive`,postFoundCatController.sendEmailInactive);
+
+router.post(`/sendEmailExpire`,postFoundCatController.sendEmailExpire);
+
 module.exports = router;

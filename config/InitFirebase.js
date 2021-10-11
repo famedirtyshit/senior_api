@@ -23,7 +23,14 @@ const initFirebase = () => {
             "token_uri": process.env.TOKEN_URI,
             "auth_provider_x509_cert_url": process.env.AUTH_PROVIDER_X509_CERT_URL,
             "client_x509_cert_url": process.env.CLIENT_X509_CERT_URL
-        })
+        }),
+        apiKey: process.env.FB_APIKEY,
+        authDomain: process.env.FB_AUTHDOMAIN,
+        projectId: process.env.FB_PROJECTID,
+        storageBucket: process.env.FB_STORAGEBUCKET,
+        messagingSenderId: process.env.FB_MESSAGINGSENDERID,
+        appId: process.env.FB_APPID,
+        measurementId: process.env.FB_MEASUREMENTID
     });
     return firebaseAdmin
 };

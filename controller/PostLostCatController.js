@@ -5,6 +5,9 @@ require("firebase/storage");
 fs = require('fs');
 const mongoose = require(`mongoose`);
 const CryptoJS = require("crypto-js");
+const nodemailer = require("nodemailer");
+let admin = require("firebase-admin");
+let dayjs = require('dayjs');
 
 const postLostCat = async (req, res, next) => {
         let e;
@@ -241,4 +244,268 @@ const deletePostLostCat = async (req, res, next) => {
         }
 }
 
-module.exports = { postLostCat, updatePostLostCat, addImagePostLostCat, deleteImagePostLostCat, deletePostLostCat };
+const sendEmailIdle = async (req, res, next) => {
+        try {
+                const payload = req.body;
+                if (!payload.postId || !payload.credential) {
+                        res.status(400).json({ result: false, msg: 'bad request' });
+                } else if (payload.credential.toString() != process.env.TRIGGER_VALID_KEY) {
+                        res.status(403).json({ result: false, msg: 'you don\'t have access' });
+                } else {
+                        connectDB();
+                        let postIdObjectIdFormat = await payload.postId.map(id => { return mongoose.Types.ObjectId(id) });
+                        let allPost;
+                        let postResult = await postLostCatModel.find({ _id: postIdObjectIdFormat }).populate('owner').exec();
+                        allPost = postResult;
+                        if (allPost.length > 0) {
+                                allPost.map((post, index) => {
+                                        let postCreateDate = new Date(post.createdAt);
+                                        let dayObj = dayjs(postCreateDate);
+                                        let inactiveDueDate = dayObj.add(2592000, 'second');
+                                        let postDateSelected = dayjs(new Date(post.date));
+                                        let sendResult = [];
+                                        admin.auth()
+                                                .getUser(post.owner.fbId)
+                                                .then((userRecord) => {
+                                                        // See the UserRecord reference doc for the contents of userRecord.
+                                                        let transporter = nodemailer.createTransport({
+                                                                host: 'gmail',
+                                                                service: 'Gmail',
+                                                                auth: {
+                                                                        user: process.env.CATUS_MAIL_USER,
+                                                                        pass: process.env.CATUS_MAIL_PASS,
+                                                                },
+                                                        });
+                                                        if (post.owner.mailSubscribe == true) {
+                                                                transporter.sendMail({
+                                                                        from: process.env.CATUS_MAIL_USER,   // ผู้ส่ง
+                                                                        to: userRecord.toJSON().email,// ผู้รับ
+                                                                        subject: "แจ้งเตือนหมดเวลาโพสต์แมวหายของคุณ",                      // หัวข้อ
+                                                                        html: `<p><b>โพสต์แมวหายของคุณจะหมดเวลาในวันที่ ${inactiveDueDate.format('DD/MM/YYYY')}</b></p><br>
+                                                                        <p>หายวันที่: ${postDateSelected.format('DD/MM/YYYY')}</p><br>
+                                                                        <p>เพศ: ${post.sex == 'unknow' ? 'ไม่ทราบ' : post.sex == 'true' ? 'ตัวผู้' : 'ตัวเมีย'}</p><br>
+                                                                        <p>ปลอกคอ: ${post.collar == true ? 'มีปลอกคอ' : 'ไม่มีปลอกคอ'}</p><br>
+                                                                        <p>คำอธิบายเพิ่มเติม: ${post.description ? post.description : '-'}</p><br><br>
+                                                                        ${post.urls.length > 0
+                                                                                        ?
+                                                                                        post.urls.map(urlObj => {
+                                                                                                return `<img style="width:50%;height:auto;display:block;margin-left:auto;margin-right:auto;" src=${urlObj.url} />`
+                                                                                        })
+                                                                                        :
+                                                                                        ''
+                                                                                }`,
+                                                                }, (err, info) => {
+                                                                        if (err) {
+                                                                                e = new Error(err.body);
+                                                                                e.message = err.message;
+                                                                                e.statusCode = err.statusCode;
+                                                                                next(e);
+                                                                        } else {
+                                                                                sendResult.push(info);
+                                                                                if (index == allPost.length - 1) {
+                                                                                        res.status(200).json({ result: true, detail: sendResult });
+                                                                                }
+                                                                        }
+                                                                });
+                                                        } else {
+                                                                if (index == allPost.length - 1) {
+                                                                        res.status(200).json({ result: true, detail: sendResult });
+                                                                }
+                                                        }
+                                                })
+                                                .catch((err) => {
+                                                        e = new Error(err.body);
+                                                        e.message = err.message;
+                                                        e.statusCode = err.statusCode;
+                                                        next(e);
+                                                });
+                                })
+                        } else {
+                                res.status(200).json({ result: true, detail: 'no match post' });
+                        }
+                }
+        } catch (err) {
+                e = new Error(err.body);
+                e.message = err.message;
+                e.statusCode = err.statusCode;
+                next(e);
+        }
+}
+
+const sendEmailInactive = async (req, res, next) => {
+        try {
+                const payload = req.body;
+                if (!payload.postId || !payload.credential) {
+                        res.status(400).json({ result: false, msg: 'bad request' });
+                } else if (payload.credential.toString() != process.env.TRIGGER_VALID_KEY) {
+                        res.status(403).json({ result: false, msg: 'you don\'t have access' });
+                } else {
+                        connectDB();
+                        let postIdObjectIdFormat = await payload.postId.map(id => { return mongoose.Types.ObjectId(id) });
+                        let allPost;
+                        let postResult = await postLostCatModel.find({ _id: postIdObjectIdFormat }).populate('owner').exec();
+                        allPost = postResult;
+                        if (allPost.length > 0) {
+                                allPost.map((post, index) => {
+                                        let postCreateDate = new Date(post.createdAt);
+                                        let dayObj = dayjs(postCreateDate);
+                                        let inactiveDueDate = dayObj.add(3196800, 'second');
+                                        let postDateSelected = dayjs(new Date(post.date));
+                                        let sendResult = [];
+                                        admin.auth()
+                                                .getUser(post.owner.fbId)
+                                                .then((userRecord) => {
+                                                        // See the UserRecord reference doc for the contents of userRecord.
+                                                        let transporter = nodemailer.createTransport({
+                                                                host: 'gmail',
+                                                                service: 'Gmail',
+                                                                auth: {
+                                                                        user: process.env.CATUS_MAIL_USER,
+                                                                        pass: process.env.CATUS_MAIL_PASS,
+                                                                },
+                                                        });
+                                                        if (post.owner.mailSubscribe == true) {
+                                                                transporter.sendMail({
+                                                                        from: process.env.CATUS_MAIL_USER,   // ผู้ส่ง
+                                                                        to: userRecord.toJSON().email,// ผู้รับ
+                                                                        subject: "แจ้งเตือนโพสต์แมวหายของคุณอยู่ในสถานะไม่ได้ใช้งาน",                      // หัวข้อ
+                                                                        html: `<p><b>โพสต์แมวหายของคุณอยู่ในสถานะไม่ได้ใช้งาน หากต้องการประกาศโพสต์นี้อีกครั้งกรุณาดำเนินการที่เว็บไซต์ <span><a href="https://dev-next-cloud-run-4p3fhebxra-as.a.run.app">CatUs</a></span> โดยโพสนี้จะหมดอายุในวันที่ ${inactiveDueDate.format('DD/MM/YYYY')}</b></p><br>
+                                                                        <p>หายวันที่: ${postDateSelected.format('DD/MM/YYYY')}</p><br>
+                                                                        <p>เพศ: ${post.sex == 'unknow' ? 'ไม่ทราบ' : post.sex == 'true' ? 'ตัวผู้' : 'ตัวเมีย'}</p><br>
+                                                                        <p>ปลอกคอ: ${post.collar == true ? 'มีปลอกคอ' : 'ไม่มีปลอกคอ'}</p><br>
+                                                                        <p>คำอธิบายเพิ่มเติม: ${post.description ? post.description : '-'}</p><br><br>
+                                                                        ${post.urls.length > 0
+                                                                                        ?
+                                                                                        post.urls.map(urlObj => {
+                                                                                                return `<img style="width:50%;height:auto;display:block;margin-left:auto;margin-right:auto;" src=${urlObj.url} />`
+                                                                                        })
+                                                                                        :
+                                                                                        ''
+                                                                                }`,
+                                                                }, (err, info) => {
+                                                                        if (err) {
+                                                                                e = new Error(err.body);
+                                                                                e.message = err.message;
+                                                                                e.statusCode = err.statusCode;
+                                                                                next(e);
+                                                                        } else {
+                                                                                sendResult.push(info);
+                                                                                if (index == allPost.length - 1) {
+                                                                                        res.status(200).json({ result: true, detail: sendResult });
+                                                                                }
+                                                                        }
+                                                                });
+                                                        } else {
+                                                                if (index == allPost.length - 1) {
+                                                                        res.status(200).json({ result: true, detail: sendResult });
+                                                                }
+                                                        }
+                                                })
+                                                .catch((err) => {
+                                                        e = new Error(err.body);
+                                                        e.message = err.message;
+                                                        e.statusCode = err.statusCode;
+                                                        next(e);
+                                                });
+                                })
+                        } else {
+                                res.status(200).json({ result: true, detail: 'no match post' });
+                        }
+                }
+        } catch (err) {
+                e = new Error(err.body);
+                e.message = err.message;
+                e.statusCode = err.statusCode;
+                next(e);
+        }
+}
+
+const sendEmailExpire = async (req, res, next) => {
+        try {
+                const payload = req.body;
+                if (!payload.postId || !payload.credential) {
+                        res.status(400).json({ result: false, msg: 'bad request' });
+                } else if (payload.credential.toString() != process.env.TRIGGER_VALID_KEY) {
+                        res.status(403).json({ result: false, msg: 'you don\'t have access' });
+                } else {
+                        connectDB();
+                        let postIdObjectIdFormat = await payload.postId.map(id => { return mongoose.Types.ObjectId(id) });
+                        let allPost;
+                        let postResult = await postLostCatModel.find({ _id: postIdObjectIdFormat }).populate('owner').exec();
+                        allPost = postResult;
+                        if (allPost.length > 0) {
+                                let bucket = admin.storage().bucket();
+                                allPost.map((post, index) => {
+                                        bucket.deleteFiles({
+                                                prefix: `lost/${post._id.toString()}`
+                                        }, function (err) {
+                                                if (err) {
+                                                        e = new Error(err.body);
+                                                        e.message = err.message;
+                                                        e.statusCode = err.statusCode;
+                                                        next(e);
+                                                }
+                                        });
+                                        let postDateSelected = dayjs(new Date(post.date));
+                                        let sendResult = [];
+                                        admin.auth()
+                                                .getUser(post.owner.fbId)
+                                                .then((userRecord) => {
+                                                        // See the UserRecord reference doc for the contents of userRecord.
+                                                        let transporter = nodemailer.createTransport({
+                                                                host: 'gmail',
+                                                                service: 'Gmail',
+                                                                auth: {
+                                                                        user: process.env.CATUS_MAIL_USER,
+                                                                        pass: process.env.CATUS_MAIL_PASS,
+                                                                },
+                                                        });
+                                                        if (post.owner.mailSubscribe == true) {
+                                                                transporter.sendMail({
+                                                                        from: process.env.CATUS_MAIL_USER,   // ผู้ส่ง
+                                                                        to: userRecord.toJSON().email,// ผู้รับ
+                                                                        subject: "แจ้งเตือนโพสต์แมวหายของคุณหมดอายุ",                      // หัวข้อ
+                                                                        html: `<p><b>โพสต์แมวหายของคุณหมดอายุแล้ว</b></p><br>
+                                                                        <p>หายวันที่: ${postDateSelected.format('DD/MM/YYYY')}</p><br>
+                                                                        <p>เพศ: ${post.sex == 'unknow' ? 'ไม่ทราบ' : post.sex == 'true' ? 'ตัวผู้' : 'ตัวเมีย'}</p><br>
+                                                                        <p>ปลอกคอ: ${post.collar == true ? 'มีปลอกคอ' : 'ไม่มีปลอกคอ'}</p><br>
+                                                                        <p>คำอธิบายเพิ่มเติม: ${post.description ? post.description : '-'}</p><br><br>`,
+                                                                }, (err, info) => {
+                                                                        if (err) {
+                                                                                e = new Error(err.body);
+                                                                                e.message = err.message;
+                                                                                e.statusCode = err.statusCode;
+                                                                                next(e);
+                                                                        } else {
+                                                                                sendResult.push(info);
+                                                                                if (index == allPost.length - 1) {
+                                                                                        res.status(200).json({ result: true, detail: sendResult });
+                                                                                }
+                                                                        }
+                                                                });
+                                                        } else {
+                                                                if (index == allPost.length - 1) {
+                                                                        res.status(200).json({ result: true, detail: sendResult });
+                                                                }
+                                                        }
+                                                })
+                                                .catch((err) => {
+                                                        e = new Error(err.body);
+                                                        e.message = err.message;
+                                                        e.statusCode = err.statusCode;
+                                                        next(e);
+                                                });
+                                })
+                        } else {
+                                res.status(200).json({ result: true, detail: 'no match post' });
+                        }
+                }
+        } catch (err) {
+                e = new Error(err.body);
+                e.message = err.message;
+                e.statusCode = err.statusCode;
+                next(e);
+        }
+}
+
+module.exports = { postLostCat, updatePostLostCat, addImagePostLostCat, deleteImagePostLostCat, deletePostLostCat, sendEmailIdle, sendEmailInactive, sendEmailExpire };
