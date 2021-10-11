@@ -15,4 +15,6 @@ router.put(`/edit`,accountController.edit);
 
 router.put(`/changeThumbnail`,parseMp,accountController.changeThumbnail);
 
+router.get(`/getMyInactivePost/:id`,accountController.getMyInactivePost);
+
 module.exports = router;

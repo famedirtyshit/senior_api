@@ -144,6 +144,32 @@ const getMyPost = async (req, res, next) => {
         }
         let queryFound = postFoundCatModel.find({ owner: mongoose.Types.ObjectId(req.params.id) });
         let queryLost = postLostCatModel.find({ owner: mongoose.Types.ObjectId(req.params.id) });
+        queryFound.where('status').equals('active');
+        queryLost.where('status').equals('active');
+        const [lostResult, foundResult] = await Promise.all([
+            queryLost.exec(),
+            queryFound.exec()
+        ]);
+        res.status(200).json({ result: true, searchResult: { postLost: lostResult, postFound: foundResult } });
+    } catch (err) {
+        console.log(err)
+        e = new Error(err.body);
+        e.message = err.message;
+        e.statusCode = err.statusCode;
+        next(e);
+    }
+}
+
+const getMyInactivePost = async (req, res, next) => {
+    try {
+        connectDB();
+        if (!req.params.id) {
+            res.status(400).json({ result: false, msg: 'bad request error' })
+        }
+        let queryFound = postFoundCatModel.find({ owner: mongoose.Types.ObjectId(req.params.id) });
+        let queryLost = postLostCatModel.find({ owner: mongoose.Types.ObjectId(req.params.id) });
+        queryFound.where('status').equals('inactive');
+        queryLost.where('status').equals('inactive');
         const [lostResult, foundResult] = await Promise.all([
             queryLost.exec(),
             queryFound.exec()
@@ -254,4 +280,4 @@ const changeThumbnail = async (req, res, next) => {
     }
 }
 
-module.exports = { signup, getUser, getMyPost, getMyDashboard, edit, changeThumbnail };
+module.exports = { signup, getUser, getMyPost, getMyDashboard, edit, changeThumbnail, getMyInactivePost };
