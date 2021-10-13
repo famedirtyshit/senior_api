@@ -12,12 +12,13 @@ const postFoundCatSchema = new schema({
     description: String,
     urls: [{ url: String, fileName: String }],
     owner: { type: schema.Types.ObjectId, ref: 'users' },
-    status: {type: String, default: 'active'},
-    idle: { type: Boolean, default: false}
+    status: { type: String, default: 'active' },
+    idle: { type: Boolean, default: false },
+    expires: { type: Date }
 }, { timestamps: true })
 
 postFoundCatSchema.index({ location: '2dsphere' })
-postFoundCatSchema.index({ expires:1 }, { expireAfterSeconds: 0 });
+postFoundCatSchema.index({ expires: 1 }, { expireAfterSeconds: 0 });
 
 postFoundCatSchema.methods.checkDistance = (srcLat, srcLng, desLat, desLng) => {
     return geolib.getDistance(
@@ -76,17 +77,20 @@ postFoundCatSchema.post('save', function (doc, next) {
     })
 })
 
-postFoundCatSchema.post('findOneAndDelete', function (next) {
+postFoundCatSchema.post('findOneAndUpdate', async function (next) {
     try {
-        const queryId = this.getQuery()["_id"];
-        postLostCatModel.updateMany({ 'nearFoundCat._id': queryId }, { $pull: { nearFoundCat: { _id: queryId } } }, null, (err, res) => {
-            if (err) {
-                console.log(err)
-                e = new Error(err.body);
-                e.statusCode = err.statusCode;
-                next(e);
-            }
-        })
+        let postTarget = await postFoundCatModel.findById(mongoose.Types.ObjectId(this.getQuery()["_id"])).exec();
+        if (postTarget.status == 'delete' || postTarget.status == 'complete') {
+            const queryId = this.getQuery()["_id"];
+            postLostCatModel.updateMany({ 'nearFoundCat._id': queryId }, { $pull: { nearFoundCat: { _id: queryId } } }, null, (err, res) => {
+                if (err) {
+                    console.log(err)
+                    e = new Error(err.body);
+                    e.statusCode = err.statusCode;
+                    next(e);
+                }
+            })
+        }
     } catch (err) {
         console.log('error in middle')
         console.log(err)

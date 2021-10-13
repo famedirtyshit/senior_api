@@ -19,4 +19,6 @@ router.post(`/sendEmailInactive`,postLostCatController.sendEmailInactive);
 
 router.post(`/sendEmailExpire`,postLostCatController.sendEmailExpire);
 
+router.put(`/extendPost`,postLostCatController.extendPost);
+
 module.exports = router;

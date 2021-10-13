@@ -13,7 +13,8 @@ const postLostCatSchema = new schema({
     owner: { type: schema.Types.ObjectId, ref: 'users' },
     nearFoundCat: [{ status: { type: Boolean, default: true }, _id: { type: schema.Types.ObjectId, ref: 'post_found_cats' } }],
     status: {type: String, default: 'active'},
-    idle: { type: Boolean, default: false}
+    idle: { type: Boolean, default: false},
+    expires: {type: Date}
 }, { timestamps: true })
 
 postLostCatSchema.index({ location: '2dsphere' })

@@ -99,11 +99,16 @@ const updatePostLostCat = async (req, res, next) => {
                 if (payload.owner != originalCredential) {
                         res.status(403).json({ result: false, msg: 'you don\'t have access' })
                 }
-                let updateRes = await postLostCatModel.findByIdAndUpdate(mongoose.Types.ObjectId(payload.postId), { date: payload.date, sex: payload.sex, collar: payload.collar, description: payload.description }, { new: true }).exec();
-                if (updateRes == null) {
-                        res.status(500).json({ result: false, msg: 'post not exist', updateResult: updateRes })
+                let postTarget = await postLostCatModel.findById({ _id: mongoose.Types.ObjectId(payload.postId) }).exec();
+                if (postTarget.status == 'active' || postTarget.status == 'inactive') {
+                        let updateRes = await postLostCatModel.findByIdAndUpdate(mongoose.Types.ObjectId(payload.postId), { date: payload.date, sex: payload.sex, collar: payload.collar, description: payload.description }, { new: true }).exec();
+                        if (updateRes == null) {
+                                res.status(500).json({ result: false, msg: 'post not exist', updateResult: updateRes })
+                        } else {
+                                res.status(200).json({ result: true, msg: 'update success', updateResult: updateRes })
+                        }
                 } else {
-                        res.status(200).json({ result: true, msg: 'update success', updateResult: updateRes })
+                        res.status(200).json({ result: false, msg: 'can\'t update none active or inactive post' })
                 }
         } catch (err) {
                 e = new Error(err.body);
@@ -140,25 +145,29 @@ const addImagePostLostCat = async (req, res, next) => {
                         res.status(500).json({ result: false, updateResult: null, msg: 'post not exist' });
                         return;
                 }
-                if (filePayload.length + postTarget.urls.length < 6) {
-                        let allNewUrls = [];
-                        for (let i = 0; i < filePayload.length; i++) {
-                                try {
-                                        let fileRef = ref.child('lost/' + postTarget._id + '/' + filePayload[i].name)
-                                        let putRes = await fileRef.put(filePayload[i].data, { contentType: 'image/png' })
-                                        let url = await putRes.ref.getDownloadURL();
-                                        allNewUrls.push({ url: url, fileName: filePayload[i].name });
-                                } catch (err) {
-                                        e = new Error(err.body);
-                                        e.message = err.message;
-                                        e.statusCode = err.statusCode;
-                                        next(e);
+                if (postTarget.status == 'active' || postTarget.status == 'inactive') {
+                        if (filePayload.length + postTarget.urls.length < 6) {
+                                let allNewUrls = [];
+                                for (let i = 0; i < filePayload.length; i++) {
+                                        try {
+                                                let fileRef = ref.child('lost/' + postTarget._id + '/' + filePayload[i].name)
+                                                let putRes = await fileRef.put(filePayload[i].data, { contentType: 'image/png' })
+                                                let url = await putRes.ref.getDownloadURL();
+                                                allNewUrls.push({ url: url, fileName: filePayload[i].name });
+                                        } catch (err) {
+                                                e = new Error(err.body);
+                                                e.message = err.message;
+                                                e.statusCode = err.statusCode;
+                                                next(e);
+                                        }
                                 }
+                                let updateRes = await postLostCatModel.findByIdAndUpdate(mongoose.Types.ObjectId(payload.postId), { $push: { urls: allNewUrls } }, { new: true }).exec();
+                                res.status(200).json({ result: true, updateResult: updateRes, newImages: allNewUrls });
+                        } else {
+                                res.status(400).json({ result: false, msg: 'number of uploaded picture exceed ' });
                         }
-                        let updateRes = await postLostCatModel.findByIdAndUpdate(mongoose.Types.ObjectId(payload.postId), { $push: { urls: allNewUrls } }, { new: true }).exec();
-                        res.status(200).json({ result: true, updateResult: updateRes, newImages: allNewUrls });
                 } else {
-                        res.status(400).json({ result: false, msg: 'number of uploaded picture exceed ' });
+                        res.status(200).json({ result: false, msg: 'can\'t update none active or inactive post' })
                 }
         } catch (err) {
                 e = new Error(err.body);
@@ -180,23 +189,27 @@ const deleteImagePostLostCat = async (req, res, next) => {
                         res.status(500).json({ result: false, updateResult: null, msg: 'post not exist' });
                         return;
                 }
-                const bytes = CryptoJS.AES.decrypt(payload.credential, process.env.PASS_HASH);
-                const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
-                if (postTarget.owner.toString() != originalCredential) {
-                        res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                if (postTarget.status == 'active' || postTarget.status == 'inactive') {
+                        const bytes = CryptoJS.AES.decrypt(payload.credential, process.env.PASS_HASH);
+                        const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
+                        if (postTarget.owner.toString() != originalCredential) {
+                                res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                        }
+                        let updateRes = await postLostCatModel.findByIdAndUpdate(mongoose.Types.ObjectId(payload.postId), { $pull: { urls: { fileName: payload.fileRef } } }, { new: true }).exec();
+                        let firebaseStorage = firebase.storage();
+                        let ref = firebaseStorage.ref();
+                        let fileRef = ref.child('lost/' + payload.postId + '/' + payload.fileRef);
+                        fileRef.delete().then(() => {
+                                res.status(200).json({ result: true, updateResult: updateRes });
+                        }).catch((err) => {
+                                e = new Error(err.body);
+                                e.message = err.message;
+                                e.statusCode = err.statusCode;
+                                next(e);
+                        })
+                } else {
+                        res.status(200).json({ result: false, msg: 'can\'t update none active or inactive post' })
                 }
-                let updateRes = await postLostCatModel.findByIdAndUpdate(mongoose.Types.ObjectId(payload.postId), { $pull: { urls: { fileName: payload.fileRef } } }, { new: true }).exec();
-                let firebaseStorage = firebase.storage();
-                let ref = firebaseStorage.ref();
-                let fileRef = ref.child('lost/' + payload.postId + '/' + payload.fileRef);
-                fileRef.delete().then(() => {
-                        res.status(200).json({ result: true, updateResult: updateRes });
-                }).catch((err) => {
-                        e = new Error(err.body);
-                        e.message = err.message;
-                        e.statusCode = err.statusCode;
-                        next(e);
-                })
         } catch (err) {
                 e = new Error(err.body);
                 e.message = err.message;
@@ -217,26 +230,31 @@ const deletePostLostCat = async (req, res, next) => {
                         res.status(500).json({ result: false, updateResult: null, msg: 'post not exist' });
                         return;
                 }
-                const bytes = CryptoJS.AES.decrypt(payload.credential, process.env.PASS_HASH);
-                const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
-                if (postTarget.owner.toString() != originalCredential) {
-                        res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                if (postTarget.status == 'active' || postTarget.status == 'inactive') {
+                        const bytes = CryptoJS.AES.decrypt(payload.credential, process.env.PASS_HASH);
+                        const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
+                        if (postTarget.owner.toString() != originalCredential) {
+                                res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                        }
+                        let expireDueDate = dayjs(new Date()).add(10, 'second').toDate();
+                        let deleteResult = await postLostCatModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(payload.postId) }, {status: 'delete', expires: expireDueDate}).exec();
+                        let firebaseStorage = firebase.storage();
+                        let ref = firebaseStorage.ref();
+                        for (let i = 0; i < postTarget.urls.length; i++) {
+                                let refString = `lost/${payload.postId}/${postTarget.urls[i].fileName}`;
+                                let fileRef = ref.child(refString);
+                                fileRef.delete().then(() => {
+                                }).catch((err) => {
+                                        e = new Error(err.body);
+                                        e.message = err.message;
+                                        e.statusCode = err.statusCode;
+                                        next(e);
+                                })
+                        }
+                        res.status(200).json({ result: true, deleteResult: deleteResult });
+                } else {
+                        res.status(200).json({ result: false, msg: 'can\'t update none active or inactive post' })
                 }
-                let deleteResult = await postLostCatModel.findOneAndDelete({ _id: mongoose.Types.ObjectId(payload.postId) }).exec();
-                let firebaseStorage = firebase.storage();
-                let ref = firebaseStorage.ref();
-                for (let i = 0; i < postTarget.urls.length; i++) {
-                        let refString = `lost/${payload.postId}/${postTarget.urls[i].fileName}`;
-                        let fileRef = ref.child(refString);
-                        fileRef.delete().then(() => {
-                        }).catch((err) => {
-                                e = new Error(err.body);
-                                e.message = err.message;
-                                e.statusCode = err.statusCode;
-                                next(e);
-                        })
-                }
-                res.status(200).json({ result: true, deleteResult: deleteResult });
         } catch (err) {
                 e = new Error(err.body);
                 e.statusCode = err.statusCode;
@@ -508,4 +526,33 @@ const sendEmailExpire = async (req, res, next) => {
         }
 }
 
-module.exports = { postLostCat, updatePostLostCat, addImagePostLostCat, deleteImagePostLostCat, deletePostLostCat, sendEmailIdle, sendEmailInactive, sendEmailExpire };
+const extendPost = async (req, res, next) => {
+        try {
+                const payload = req.body;
+                if (!payload.postId || !payload.credential) {
+                        res.status(400).json({ result: false, msg: 'please input correct data' })
+                }
+                const bytes = CryptoJS.AES.decrypt(payload.credential, process.env.PASS_HASH);
+                const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
+                connectDB();
+                let postTarget = await postLostCatModel.findById({ _id: mongoose.Types.ObjectId(payload.postId) }).populate('owner').exec();
+                if (postTarget.owner._id != originalCredential) {
+                        res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                        return;
+                }
+                if (postTarget.status == 'active' || postTarget.status == 'inactive') {
+                        let newDate = new Date();
+                        let updateRes = await postLostCatModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(payload.postId) }, { createdAt: newDate, status: 'active', idle: false }, { new: true, timestamps: false }).exec();
+                        res.status(200).json({ result: true, updateResult: updateRes });
+                } else {
+                        res.status(200).json({ result: false, updateResult: 'can\'t update none active or inactive post' });
+                }
+        } catch (err) {
+                e = new Error(err.body);
+                e.message = err.message;
+                e.statusCode = err.statusCode;
+                next(e);
+        }
+}
+
+module.exports = { postLostCat, updatePostLostCat, addImagePostLostCat, deleteImagePostLostCat, deletePostLostCat, sendEmailIdle, sendEmailInactive, sendEmailExpire, extendPost };
