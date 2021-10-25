@@ -21,4 +21,6 @@ router.post(`/sendEmailExpire`,postFoundCatController.sendEmailExpire);
 
 router.put(`/extendPost`,postFoundCatController.extendPost);
 
+router.put(`/completePost`,postFoundCatController.completePost);
+
 module.exports = router;

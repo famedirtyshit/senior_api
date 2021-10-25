@@ -238,7 +238,7 @@ const deletePostFoundCat = async (req, res, next) => {
                                 res.status(403).json({ result: false, msg: 'you don\'t have access' })
                         }
                         let expireDueDate = dayjs(new Date()).add(2592000, 'second').toDate();
-                        let deleteResult = await postFoundCatModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(payload.postId) }, {status: 'delete', expires: expireDueDate}).exec();
+                        let deleteResult = await postFoundCatModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(payload.postId) }, { status: 'delete', expires: expireDueDate }).exec();
                         let firebaseStorage = firebase.storage();
                         let ref = firebaseStorage.ref();
                         for (let i = 0; i < postTarget.urls.length; i++) {
@@ -602,4 +602,48 @@ const extendPost = async (req, res, next) => {
         }
 }
 
-module.exports = { postFoundCat, updatePostFoundCat, addImagePostFoundCat, deleteImagePostFoundCat, deletePostFoundCat, sendEmailIdle, sendEmailInactive, sendEmailExpire, extendPost };
+const completePost = async (req, res, next) => {
+        try {
+                const payload = req.body;
+                if (!payload.postId || !payload.credential) {
+                        res.status(400).json({ result: false, msg: 'please input correct data' })
+                }
+                connectDB();
+                let postTarget = await postFoundCatModel.findById(mongoose.Types.ObjectId(payload.postId)).exec();
+                if (!postTarget) {
+                        res.status(500).json({ result: false, updateResult: null, msg: 'post not exist' });
+                        return;
+                }
+                if (postTarget.status == 'active' || postTarget.status == 'inactive') {
+                        const bytes = CryptoJS.AES.decrypt(payload.credential, process.env.PASS_HASH);
+                        const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
+                        if (postTarget.owner.toString() != originalCredential) {
+                                res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                        }
+                        let expireDueDate = dayjs(new Date()).add(2592000, 'second').toDate();
+                        let deleteResult = await postFoundCatModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(payload.postId) }, { status: 'complete', expires: expireDueDate }).exec();
+                        let firebaseStorage = firebase.storage();
+                        let ref = firebaseStorage.ref();
+                        for (let i = 0; i < postTarget.urls.length; i++) {
+                                let refString = `found/${payload.postId}/${postTarget.urls[i].fileName}`;
+                                let fileRef = ref.child(refString);
+                                fileRef.delete().then(() => {
+                                }).catch((err) => {
+                                        e = new Error(err.body);
+                                        e.message = err.message;
+                                        e.statusCode = err.statusCode;
+                                        next(e);
+                                })
+                        }
+                        res.status(200).json({ result: true, deleteResult: deleteResult });
+                } else {
+                        res.status(200).json({ result: false, msg: 'can\'t update none active or inactive post' })
+                }
+        } catch (err) {
+                e = new Error(err.body);
+                e.statusCode = err.statusCode;
+                next(e);
+        }
+}
+
+module.exports = { postFoundCat, updatePostFoundCat, addImagePostFoundCat, deleteImagePostFoundCat, deletePostFoundCat, sendEmailIdle, sendEmailInactive, sendEmailExpire, extendPost, completePost };

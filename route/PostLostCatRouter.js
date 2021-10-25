@@ -3,22 +3,24 @@ const router = express.Router();
 const postLostCatController = require(`../controller/PostLostCatController`);
 const parseMp = require('express-parse-multipart');
 
-router.post(`/post`,parseMp,postLostCatController.postLostCat);
+router.post(`/post`, parseMp, postLostCatController.postLostCat);
 
-router.put(`/update`,postLostCatController.updatePostLostCat);
+router.put(`/update`, postLostCatController.updatePostLostCat);
 
-router.put(`/addImage`,parseMp,postLostCatController.addImagePostLostCat);
+router.put(`/addImage`, parseMp, postLostCatController.addImagePostLostCat);
 
-router.put(`/deleteImage`,postLostCatController.deleteImagePostLostCat);
+router.put(`/deleteImage`, postLostCatController.deleteImagePostLostCat);
 
-router.put(`/deletePost`,postLostCatController.deletePostLostCat);
+router.put(`/deletePost`, postLostCatController.deletePostLostCat);
 
-router.post(`/sendEmailIdle`,postLostCatController.sendEmailIdle);
+router.post(`/sendEmailIdle`, postLostCatController.sendEmailIdle);
 
-router.post(`/sendEmailInactive`,postLostCatController.sendEmailInactive);
+router.post(`/sendEmailInactive`, postLostCatController.sendEmailInactive);
 
-router.post(`/sendEmailExpire`,postLostCatController.sendEmailExpire);
+router.post(`/sendEmailExpire`, postLostCatController.sendEmailExpire);
 
-router.put(`/extendPost`,postLostCatController.extendPost);
+router.put(`/extendPost`, postLostCatController.extendPost);
+
+router.put(`/completePost`, postLostCatController.completePost);
 
 module.exports = router;

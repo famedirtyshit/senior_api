@@ -190,7 +190,7 @@ const getMyDashboard = async (req, res, next) => {
         if (!req.params.id) {
             res.status(400).json({ result: false, msg: 'bad request error' })
         }
-        let query = postLostCatModel.find({ owner: mongoose.Types.ObjectId(req.params.id) });
+        let query = postLostCatModel.find({ owner: mongoose.Types.ObjectId(req.params.id), status: 'active' });
         let result = await query.exec();
         res.status(200).json({ result: true, searchResult: result });
     } catch (err) {
@@ -214,7 +214,7 @@ const edit = async (req, res, next) => {
             res.status(403).json({ result: false, msg: 'you don\'t have access' })
         }
         connectDB();
-        let updateRes = await userModel.findByIdAndUpdate(mongoose.Types.ObjectId(payload.id), { firstname: payload.firstname, lastname: payload.lastname, phone: payload.phone, facebook: payload.facebook, instagram: payload.instagram }, { new: true }).exec();
+        let updateRes = await userModel.findByIdAndUpdate(mongoose.Types.ObjectId(payload.id), { firstname: payload.firstname, lastname: payload.lastname, phone: payload.phone, facebook: payload.facebook, instagram: payload.instagram, mailSubscribe: payload.mailSubscribe }, { new: true }).exec();
         if (updateRes == null) {
             res.status(500).json({ result: false, msg: 'user not exist', updateResult: updateRes })
         } else {
