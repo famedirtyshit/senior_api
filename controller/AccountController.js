@@ -280,4 +280,29 @@ const changeThumbnail = async (req, res, next) => {
     }
 }
 
-module.exports = { signup, getUser, getMyPost, getMyDashboard, edit, changeThumbnail, getMyInactivePost };
+const getMyHistory = async (req, res, next) => {
+    try {
+        if (!req.params.id) {
+            res.status(400).json({ result: false, msg: 'bad request error' })
+        }
+        connectDB();
+        let queryFound = postFoundCatModel.find({ owner: mongoose.Types.ObjectId(req.params.id) });
+        let queryLost = postLostCatModel.find({ owner: mongoose.Types.ObjectId(req.params.id) });
+        let postHistoryType = ['complete','delete','expire','deleteByAdmin'];
+        queryFound.where('status').equals(postHistoryType);
+        queryLost.where('status').equals(postHistoryType);
+        const [lostResult, foundResult] = await Promise.all([
+            queryLost.exec(),
+            queryFound.exec()
+        ]);
+        res.status(200).json({ result: true, searchResult: { postLost: lostResult, postFound: foundResult } });
+    } catch (err) {
+        console.log(err)
+        e = new Error(err.body);
+        e.message = err.message;
+        e.statusCode = err.statusCode;
+        next(e);
+    }
+}
+
+module.exports = { signup, getUser, getMyPost, getMyDashboard, edit, changeThumbnail, getMyInactivePost, getMyHistory };

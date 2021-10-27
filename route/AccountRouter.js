@@ -17,4 +17,6 @@ router.put(`/changeThumbnail`,parseMp,accountController.changeThumbnail);
 
 router.get(`/getMyInactivePost/:id`,accountController.getMyInactivePost);
 
+router.get(`/getMyHistory/:id`,accountController.getMyHistory);
+
 module.exports = router;
