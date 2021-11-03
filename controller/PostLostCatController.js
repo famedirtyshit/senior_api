@@ -8,6 +8,7 @@ const CryptoJS = require("crypto-js");
 const nodemailer = require("nodemailer");
 let admin = require("firebase-admin");
 let dayjs = require('dayjs');
+const { reportPostModel } = require(`../model/ReportPost`);
 
 const postLostCat = async (req, res, next) => {
         let e;
@@ -97,7 +98,8 @@ const updatePostLostCat = async (req, res, next) => {
                 const bytes = CryptoJS.AES.decrypt(payload.credential, process.env.PASS_HASH);
                 const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
                 if (payload.owner != originalCredential) {
-                        res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                        res.status(403).json({ result: false, msg: 'you don\'t have access' });
+                        return;
                 }
                 let postTarget = await postLostCatModel.findById({ _id: mongoose.Types.ObjectId(payload.postId) }).exec();
                 if (postTarget.status == 'active' || postTarget.status == 'inactive') {
@@ -135,7 +137,8 @@ const addImagePostLostCat = async (req, res, next) => {
                 const bytes = CryptoJS.AES.decrypt(payload.cipherCredential, process.env.PASS_HASH);
                 const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
                 if (payload.owner != originalCredential) {
-                        res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                        res.status(403).json({ result: false, msg: 'you don\'t have access' });
+                        return;
                 }
                 connectDB();
                 let firebaseStorage = firebase.storage();
@@ -193,7 +196,8 @@ const deleteImagePostLostCat = async (req, res, next) => {
                         const bytes = CryptoJS.AES.decrypt(payload.credential, process.env.PASS_HASH);
                         const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
                         if (postTarget.owner.toString() != originalCredential) {
-                                res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                                res.status(403).json({ result: false, msg: 'you don\'t have access' });
+                                return;
                         }
                         let updateRes = await postLostCatModel.findByIdAndUpdate(mongoose.Types.ObjectId(payload.postId), { $pull: { urls: { fileName: payload.fileRef } } }, { new: true }).exec();
                         let firebaseStorage = firebase.storage();
@@ -234,7 +238,8 @@ const deletePostLostCat = async (req, res, next) => {
                         const bytes = CryptoJS.AES.decrypt(payload.credential, process.env.PASS_HASH);
                         const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
                         if (postTarget.owner.toString() != originalCredential) {
-                                res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                                res.status(403).json({ result: false, msg: 'you don\'t have access' });
+                                return;
                         }
                         let expireDueDate = dayjs(new Date()).add(2592000, 'second').toDate();
                         let deleteResult = await postLostCatModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(payload.postId) }, { status: 'delete', expires: expireDueDate }).exec();
@@ -251,6 +256,11 @@ const deletePostLostCat = async (req, res, next) => {
                                         next(e);
                                 })
                         }
+                        let reportDeleteResult = await reportPostModel.findOneAndDelete({ postId: mongoose.Types.ObjectId(payload.postId), onModel: 'post_lost_cats' }, function (err, docs) {
+                                if (err) {
+                                        console.log('delete report record from delete found post error')
+                                }
+                        });
                         res.status(200).json({ result: true, deleteResult: deleteResult });
                 } else {
                         res.status(200).json({ result: false, msg: 'can\'t update none active or inactive post' })
@@ -571,7 +581,8 @@ const completePost = async (req, res, next) => {
                         const bytes = CryptoJS.AES.decrypt(payload.credential, process.env.PASS_HASH);
                         const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
                         if (postTarget.owner.toString() != originalCredential) {
-                                res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                                res.status(403).json({ result: false, msg: 'you don\'t have access' });
+                                return;
                         }
                         let expireDueDate = dayjs(new Date()).add(2592000, 'second').toDate();
                         let deleteResult = await postLostCatModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(payload.postId) }, { status: 'complete', expires: expireDueDate }).exec();
@@ -588,6 +599,11 @@ const completePost = async (req, res, next) => {
                                         next(e);
                                 })
                         }
+                        let reportDeleteResult = await reportPostModel.findOneAndDelete({ postId: mongoose.Types.ObjectId(payload.postId), onModel: 'post_lost_cats' }, function (err, docs) {
+                                if (err) {
+                                        console.log('delete report record from delete found post error')
+                                }
+                        });
                         res.status(200).json({ result: true, deleteResult: deleteResult });
                 } else {
                         res.status(200).json({ result: false, msg: 'can\'t update none active or inactive post' })

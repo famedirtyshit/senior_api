@@ -19,4 +19,4 @@ COPY . ./
 # Run the web service on container startup.
 CMD [ "node", "index.js" ]
 
-# gcloud builds submit --tag gcr.io/senior-next-320910/senior-api-container
+# gcloud builds submit --tag gcr.io/algebraic-pier-330907/catus-backend-image

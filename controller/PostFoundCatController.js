@@ -1,5 +1,6 @@
 const { postFoundCatModel } = require(`../model/PostFoundCat`);
 const { postLostCatModel } = require(`../model/PostLostCat`);
+const { reportPostModel } = require(`../model/ReportPost`);
 const connectDB = require(`../config/ConnectDB`);
 const firebase = require('firebase/app');
 require("firebase/storage");
@@ -99,6 +100,7 @@ const updatePostFoundCat = async (req, res, next) => {
                 const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
                 if (payload.owner != originalCredential) {
                         res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                        return;
                 }
                 let postTarget = await postFoundCatModel.findById({ _id: mongoose.Types.ObjectId(payload.postId) }).exec();
                 if (postTarget.status == 'active' || postTarget.status == 'inactive') {
@@ -137,6 +139,7 @@ const addImagePostFoundCat = async (req, res, next) => {
                 const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
                 if (payload.owner != originalCredential) {
                         res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                        return;
                 }
                 connectDB();
                 let firebaseStorage = firebase.storage();
@@ -195,6 +198,7 @@ const deleteImagePostFoundCat = async (req, res, next) => {
                         const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
                         if (postTarget.owner.toString() != originalCredential) {
                                 res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                                return;
                         }
                         let updateRes = await postFoundCatModel.findByIdAndUpdate(mongoose.Types.ObjectId(payload.postId), { $pull: { urls: { fileName: payload.fileRef } } }, { new: true }).exec();
                         let firebaseStorage = firebase.storage();
@@ -236,6 +240,7 @@ const deletePostFoundCat = async (req, res, next) => {
                         const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
                         if (postTarget.owner.toString() != originalCredential) {
                                 res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                                return;
                         }
                         let expireDueDate = dayjs(new Date()).add(2592000, 'second').toDate();
                         let deleteResult = await postFoundCatModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(payload.postId) }, { status: 'delete', expires: expireDueDate }).exec();
@@ -252,6 +257,11 @@ const deletePostFoundCat = async (req, res, next) => {
                                         next(e);
                                 })
                         }
+                        let reportDeleteResult = await reportPostModel.findOneAndDelete({ postId: mongoose.Types.ObjectId(payload.postId), onModel: 'post_found_cats' }, function (err, docs) {
+                                if (err) {
+                                        console.log('delete report record from delete found post error')
+                                }
+                        });
                         res.status(200).json({ result: true, deleteResult: deleteResult });
                 } else {
                         res.status(200).json({ result: false, msg: 'can\'t update none active or inactive post' })
@@ -619,6 +629,7 @@ const completePost = async (req, res, next) => {
                         const originalCredential = bytes.toString(CryptoJS.enc.Utf8);
                         if (postTarget.owner.toString() != originalCredential) {
                                 res.status(403).json({ result: false, msg: 'you don\'t have access' })
+                                return;
                         }
                         let expireDueDate = dayjs(new Date()).add(2592000, 'second').toDate();
                         let deleteResult = await postFoundCatModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(payload.postId) }, { status: 'complete', expires: expireDueDate }).exec();
@@ -635,6 +646,11 @@ const completePost = async (req, res, next) => {
                                         next(e);
                                 })
                         }
+                        let reportDeleteResult = await reportPostModel.findOneAndDelete({ postId: mongoose.Types.ObjectId(payload.postId), onModel: 'post_found_cats' }, function (err, docs) {
+                                if (err) {
+                                        console.log('delete report record from delete found post error')
+                                }
+                        });
                         res.status(200).json({ result: true, deleteResult: deleteResult });
                 } else {
                         res.status(200).json({ result: false, msg: 'can\'t update none active or inactive post' })
