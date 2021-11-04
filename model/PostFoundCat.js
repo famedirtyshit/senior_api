@@ -140,7 +140,7 @@ postFoundCatSchema.post('save', function (doc, next) {
 postFoundCatSchema.post('findOneAndUpdate', async function (next) {
     try {
         let postTarget = await postFoundCatModel.findById(mongoose.Types.ObjectId(this.getQuery()["_id"])).exec();
-        if (postTarget.status == 'delete' || postTarget.status == 'complete') {
+        if (postTarget.status == 'delete' || postTarget.status == 'complete' || postTarget.status == 'deleteByAdmin') {
             const queryId = this.getQuery()["_id"];
             postLostCatModel.updateMany({ 'nearFoundCat._id': queryId }, { $pull: { nearFoundCat: { _id: queryId } } }, null, (err, res) => {
                 if (err) {

@@ -14,6 +14,7 @@ const searchFoundCatRouter = require(`./route/SearchFoundCatRouter`);
 const searchAllRouter = require(`./route/SearchAllRouter`);
 const accountRouter = require(`./route/AccountRouter`)
 const reportPostRouter = require(`./route/ReportPostRouter`);
+const adminRouter = require(`./route/AdminRouter`);
 
 app.use(cors({
     origin: '*',
@@ -42,6 +43,8 @@ app.use(`/searchAll`, searchAllRouter);
 app.use(`/account`, accountRouter);
 
 app.use(`/reportPost`, reportPostRouter);
+
+app.use(`/admin`, adminRouter);
 
 app.all('*', (req, res, next) => {
     const err = new Error(`path ${req.path} not found.`)

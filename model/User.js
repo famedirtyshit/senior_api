@@ -9,7 +9,8 @@ const userSchema = new schema({
     facebook : { type: String },
     instagram : { type: String },
     thumbnail: { url: {type: String, default: 'default'}},
-    mailSubscribe: { type: Boolean, default: true}
+    mailSubscribe: { type: Boolean, default: true},
+    role: {type: String, default: 'member'}
 })
                                 //ชื่อ collection
 const userModel = mongoose.model('users', userSchema);
