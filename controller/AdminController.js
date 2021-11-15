@@ -49,7 +49,7 @@ const getReportPost = async (req, res, next) => {
                 res.status(200).json({ result: false, searchResult: [], message: 'user not found' })
             } else {
                 if (response[0].role == 'admin') {
-                    let query = reportPostModel.find();
+                    let query = reportPostModel.find().populate('postId');
                     let result = await query.exec();
                     res.status(200).json({ result: true, searchResult: result });
                 } else {
