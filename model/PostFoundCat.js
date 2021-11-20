@@ -31,7 +31,7 @@ postFoundCatSchema.methods.checkDistance = (srcLat, srcLng, desLat, desLng) => {
 }
 
 postFoundCatSchema.post('save', function (doc, next) {
-    let query = postLostCatModel.find();
+    let query = postLostCatModel.find({ status: 'active' });
     query.where('location').equals({
         $near: {
             $maxDistance: 2000,
@@ -59,7 +59,8 @@ postFoundCatSchema.post('save', function (doc, next) {
                 console.log('------------')
             } else {
                 next();
-                res.map(async lostPost => {
+                let allLostPostReceiveMail = new Map();
+                res.map(async (lostPost, lostPostIndex) => {
                     if (lostPost.owner.toString() != doc.owner.toString()) {
                         let session = sessionMap.get(lostPost.owner.toString());
                         if (session != undefined && session.length > 0) {
@@ -69,60 +70,61 @@ postFoundCatSchema.post('save', function (doc, next) {
                         }
                         let allLostPostInfo = await postLostCatModel.findById({ _id: mongoose.Types.ObjectId(lostPost._id) }).populate('owner').exec();
                         if (allLostPostInfo) {
-                            admin.auth()
-                                .getUser(allLostPostInfo.owner.fbId)
-                                .then((userRecord) => {
-                                    // See the UserRecord reference doc for the contents of userRecord.
-                                    if (allLostPostInfo.owner.mailSubscribe == true) {
-                                        // console.log(allLostPostInfo);
-                                        // console.log(userRecord);
-                                        // console.log('--------');
-                                        let transporter = nodemailer.createTransport({
-                                            host: 'gmail',
-                                            service: 'Gmail',
-                                            auth: {
-                                                user: process.env.CATUS_MAIL_USER,
-                                                pass: process.env.CATUS_MAIL_PASS,
-                                            },
-                                        });
-                                        transporter.sendMail({
-                                            from: process.env.CATUS_MAIL_USER,   // ผู้ส่ง
-                                            to: userRecord.toJSON().email,// ผู้รับ
-                                            subject: "แจ้งเตือนคนพบแมวใกล้แมวหายของคุณ",                      // หัวข้อ
-                                            html: `<p><b>โพสต์แมวหายของคุณ</b></p><br>
-                                                                            <p>หายวันที่: ${dayjs(allLostPostInfo.date).format('DD/MM/YYYY')}</p><br>
-                                                                            <p>เพศ: ${allLostPostInfo.sex == 'unknow' ? 'ไม่ทราบ' : allLostPostInfo.sex == 'true' ? 'ตัวผู้' : 'ตัวเมีย'}</p><br>
-                                                                            <p>ปลอกคอ: ${allLostPostInfo.collar == true ? 'มีปลอกคอ' : 'ไม่มีปลอกคอ'}</p><br>
-                                                                            <p>คำอธิบายเพิ่มเติม: ${allLostPostInfo.description ? allLostPostInfo.description : '-'}</p><br><br>
-                                                                            ${allLostPostInfo.urls.length > 0
-                                                    ?
-                                                    allLostPostInfo.urls.map(urlObj => {
-                                                        return `<img style="width:50%;height:auto;display:block;margin-left:auto;margin-right:auto;" src=${urlObj.url} />`
-                                                    })
-                                                    :
-                                                    ''
-                                                }`,
-                                        }, (err, info) => {
-                                            if (err) {
-                                                e = new Error(err.body);
-                                                e.message = err.message;
-                                                e.statusCode = err.statusCode;
-         
-                                                // next(e);
-                                            } else {
-  
-                                                // sended mail
-                                            }
-                                        });
-                                    }
-                                })
-                                .catch((err) => {
-                                    e = new Error(err.body);
-                                    e.message = err.message;
-                                    e.statusCode = err.statusCode;
-                                    // next(e);
-                                    console.log(err)
-                                });
+                            if (allLostPostReceiveMail.get(allLostPostInfo.owner._id) == undefined) {
+                                allLostPostReceiveMail.set(allLostPostInfo.owner._id, allLostPostInfo);
+                            }
+                        }
+                        if (lostPostIndex == res.length - 1) {
+                            allLostPostReceiveMail.forEach(lostPostReceiveMail => {
+                                console.log(lostPostReceiveMail);
+                                console.log('--------')
+                                admin.auth()
+                                    .getUser(lostPostReceiveMail.owner.fbId)
+                                    .then((userRecord) => {
+                                        console.log(userRecord);
+                                        console.log('--------')
+                                        // See the UserRecord reference doc for the contents of userRecord.
+                                        if (lostPostReceiveMail.owner.mailSubscribe == true) {
+                                            // console.log(lostPostReceiveMail);
+                                            // console.log(userRecord);
+                                            console.log('true subscribe');
+                                            let transporter = nodemailer.createTransport({
+                                                host: 'gmail',
+                                                service: 'Gmail',
+                                                auth: {
+                                                    user: process.env.CATUS_MAIL_USER,
+                                                    pass: process.env.CATUS_MAIL_PASS,
+                                                },
+                                            });
+                                            transporter.sendMail({
+                                                from: process.env.CATUS_MAIL_USER,   // ผู้ส่ง
+                                                to: userRecord.toJSON().email,// ผู้รับ
+                                                subject: "แจ้งเตือนคนพบแมวใกล้แมวหายของคุณ",                      // หัวข้อ
+                                                html: `<p><b>ตรวจสอบโพสต์แมวหายของคุณได้ที่ https://catus-frontend-okqwqdlmsq-as.a.run.app/dashboard</b></p><br>`,
+                                            }, (err, info) => {
+                                                if (err) {
+                                                    e = new Error(err.body);
+                                                    e.message = err.message;
+                                                    e.statusCode = err.statusCode;
+                                                    // next(e);
+                                                    console.log('--------')
+                                                    console.log(err)
+                                                } else {
+                                                    // mail sended
+                                                    console.log('--------')
+                                                    console.log(info)
+                                                }
+                                            });
+                                        }
+                                    })
+                                    .catch((err) => {
+                                        e = new Error(err.body);
+                                        e.message = err.message;
+                                        e.statusCode = err.statusCode;
+                                        // next(e);
+                                        console.log(err)
+                                    });
+                            })
                         }
                     }
                 })
