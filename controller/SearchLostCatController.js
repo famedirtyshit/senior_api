@@ -36,6 +36,7 @@ const searchLostCat = async (req, res, next) => {
                         countFilter["collar"] = collarQuery;
                 }
                 query.where('status').equals('active');
+                countFilter["status"] = 'active';
                 let maxPerPage = parseInt(process.env.MAXPERPAGE);
                 query.skip(maxPerPage * (req.params.page - 1)).limit(maxPerPage);
                 if (req.params.sortType == 'latest') {
@@ -104,6 +105,7 @@ const searchLostCatNoMap = async (req, res, next) => {
                         countFilter["collar"] = collarQuery;
                 }
                 query.where('status').equals('active');
+                countFilter["status"] = 'active';
                 let maxPerPage = parseInt(process.env.MAXPERPAGE);
                 query.skip(maxPerPage * (req.params.page - 1)).limit(maxPerPage);
                 query.sort({date: 'desc'})
