@@ -17,4 +17,4 @@ steps:
       - asia-southeast1
     dir: ./
 
-#gcloud functions deploy CatUsCloudFunction --allow-unauthenticated --runtime nodejs14 --trigger-http --entry-point catusService
+

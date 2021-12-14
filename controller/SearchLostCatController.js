@@ -37,7 +37,7 @@ const searchLostCat = async (req, res, next) => {
                 }
                 query.where('status').equals('active');
                 countFilter["status"] = 'active';
-                let maxPerPage = parseInt(process.env.MAXPERPAGE);
+                let maxPerPage = 12;
                 query.skip(maxPerPage * (req.params.page - 1)).limit(maxPerPage);
                 if (req.params.sortType == 'latest') {
                         query.sort({ date: 'desc' })
@@ -106,7 +106,7 @@ const searchLostCatNoMap = async (req, res, next) => {
                 }
                 query.where('status').equals('active');
                 countFilter["status"] = 'active';
-                let maxPerPage = parseInt(process.env.MAXPERPAGE);
+                let maxPerPage = 12;
                 query.skip(maxPerPage * (req.params.page - 1)).limit(maxPerPage);
                 query.sort({date: 'desc'})
                 countFilter["date"] = { $gte: req.params.from, $lte: req.params.to };

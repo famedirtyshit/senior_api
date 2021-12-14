@@ -71,7 +71,7 @@ const searchAll = async (req, res, next) => {
             postObj.distance = foundResult[i].checkDistance(req.params.lat, req.params.lng, foundResult[i].location.coordinates[1], foundResult[i].location.coordinates[0]);
             result.push(postObj);
         }
-        let maxPerPage = parseInt(process.env.MAXPERPAGE);
+        let maxPerPage = 12;
         if (req.params.sortType == 'latest') {
             result.sort(sortByDate);
         } else {
@@ -135,7 +135,7 @@ const searchAllNoMap = async (req, res, next) => {
         for (let i = 0; i < foundResult.length; i++) {
             result.push(foundResult[i]);
         }
-        let maxPerPage = parseInt(process.env.MAXPERPAGE);
+        let maxPerPage = 12;
         result.sort(sortByDate);
         let pageResult = result.slice(maxPerPage * (req.params.page - 1), (maxPerPage * (req.params.page - 1)) + maxPerPage);
         res.json({ result: true, msg: `search success`, searchResult: pageResult, count: result.length });
